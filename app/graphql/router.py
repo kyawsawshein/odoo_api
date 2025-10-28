@@ -262,6 +262,7 @@ class Mutation:
     @strawberry.mutation
     async def sync_contacts_from_odoo(self, info: Info) -> SyncResponse:
         """Sync contacts from Odoo"""
+        print("currency user : ", info.context)
         db: AsyncSession = info.context["db"]
         current_user: UserSchema = info.context["current_user"]
 
@@ -276,6 +277,7 @@ class Mutation:
             )
 
         service = ContactService(db, current_user)
+        print("Service : ", service)
         result = await service.sync_contacts_from_odoo()
 
         return SyncResponse(

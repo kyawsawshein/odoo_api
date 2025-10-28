@@ -2,10 +2,7 @@
 
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
 import structlog
-
 from app.api.models import (
     AccountingMove,
     AccountingMoveCreate,
@@ -41,6 +38,8 @@ from app.services.inventory_service import InventoryService
 from app.services.product_service import ProductService
 from app.services.purchase_service import PurchaseService
 from app.services.sale_service import SaleService
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 
@@ -146,6 +145,35 @@ async def update_contact(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update contact: {str(e)}",
+        )
+
+
+@router.post("/contacts/sync", response_model=SyncResponse, tags=["contacts"])
+async def sync_inventory(
+    background_tasks: BackgroundTasks,
+    current_user: UserSchema = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Sync Contact data with Odoo"""
+    service = ContactService(db, current_user)
+    try:
+        result = await service.sync_contacts_from_odoo()
+
+        # Send to Kafka for async processing
+        # background_tasks.add_task(
+        #     # KafkaProducer.send_message,
+        #     "odoo-contact",
+        #     {
+        #         "action": "sync",
+        #         "user_id": current_user.id
+        #     }
+        # )
+
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync Contact: {str(e)}",
         )
 
 
