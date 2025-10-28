@@ -1,0 +1,1 @@
+"""Business logic services for Odoo FastAPI integration"""

@@ -1,0 +1,1 @@
+"""Redis caching module for Odoo FastAPI integration"""

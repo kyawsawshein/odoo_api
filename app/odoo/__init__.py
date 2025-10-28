@@ -1,0 +1,1 @@
+"""Odoo integration module for FastAPI"""

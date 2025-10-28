@@ -1,0 +1,1 @@
+"""Kafka integration for async processing"""
