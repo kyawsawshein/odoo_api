@@ -218,7 +218,7 @@ class Mutation:
                 message="Authentication required",
                 odoo_id=None,
                 local_id=None,
-                errors=["User must be authenticated to create contacts"]
+                errors=["User must be authenticated to create contacts"],
             )
 
         service = ContactService(db, current_user)
@@ -245,7 +245,7 @@ class Mutation:
                 message="Authentication required",
                 odoo_id=None,
                 local_id=None,
-                errors=["User must be authenticated to create products"]
+                errors=["User must be authenticated to create products"],
             )
 
         service = ProductService(db, current_user)
@@ -273,7 +273,7 @@ class Mutation:
                 message="Authentication required",
                 odoo_id=None,
                 local_id=None,
-                errors=["User must be authenticated to sync contacts"]
+                errors=["User must be authenticated to sync contacts"],
             )
 
         service = ContactService(db, current_user)
@@ -301,7 +301,7 @@ class Mutation:
                 message="Authentication required",
                 odoo_id=None,
                 local_id=None,
-                errors=["User must be authenticated to sync products"]
+                errors=["User must be authenticated to sync products"],
             )
 
         service = ProductService(db, current_user)
@@ -328,13 +328,9 @@ async def get_graphql_context(
     """Get context for GraphQL operations with optional authentication"""
     # Try to get current user from token, but don't require it
     current_user = await get_current_user_optional(request)
-    
+
     return {"db": db, "current_user": current_user}
 
 
 # Create GraphQL router with optional authentication
-router = GraphQLRouter(
-    schema,
-    context_getter=get_graphql_context,
-    graphiql=True
-)
+router = GraphQLRouter(schema, context_getter=get_graphql_context, graphiql=True)

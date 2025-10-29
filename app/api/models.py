@@ -1,4 +1,5 @@
 """Pydantic models for API requests and responses"""
+
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, validator
 from datetime import datetime, date
@@ -7,6 +8,7 @@ from decimal import Decimal
 
 class ContactBase(BaseModel):
     """Base contact model"""
+
     name: str = Field(..., description="Contact name")
     email: Optional[str] = Field(None, description="Email address")
     phone: Optional[str] = Field(None, description="Phone number")
@@ -19,11 +21,13 @@ class ContactBase(BaseModel):
 
 class ContactCreate(ContactBase):
     """Contact creation model"""
+
     pass
 
 
 class ContactUpdate(BaseModel):
     """Contact update model"""
+
     name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
@@ -34,6 +38,7 @@ class ContactUpdate(BaseModel):
 
 class Contact(ContactBase):
     """Contact response model"""
+
     id: int
     odoo_id: Optional[int] = None
     created_at: datetime
@@ -45,6 +50,7 @@ class Contact(ContactBase):
 
 class ProductBase(BaseModel):
     """Base product model"""
+
     name: str = Field(..., description="Product name")
     default_code: Optional[str] = Field(None, description="Internal reference")
     list_price: Optional[Decimal] = Field(None, description="Sales price")
@@ -57,11 +63,13 @@ class ProductBase(BaseModel):
 
 class ProductCreate(ProductBase):
     """Product creation model"""
+
     pass
 
 
 class ProductUpdate(BaseModel):
     """Product update model"""
+
     name: Optional[str] = None
     default_code: Optional[str] = None
     list_price: Optional[Decimal] = None
@@ -71,6 +79,7 @@ class ProductUpdate(BaseModel):
 
 class Product(ProductBase):
     """Product response model"""
+
     id: int
     odoo_id: Optional[int] = None
     created_at: datetime
@@ -82,6 +91,7 @@ class Product(ProductBase):
 
 class InventoryBase(BaseModel):
     """Base inventory model"""
+
     product_id: int = Field(..., description="Product ID")
     location_id: int = Field(..., description="Location ID")
     quantity: Decimal = Field(..., description="Quantity")
@@ -90,17 +100,20 @@ class InventoryBase(BaseModel):
 
 class InventoryCreate(InventoryBase):
     """Inventory creation model"""
+
     pass
 
 
 class InventoryUpdate(BaseModel):
     """Inventory update model"""
+
     quantity: Optional[Decimal] = None
     location_id: Optional[int] = None
 
 
 class Inventory(InventoryBase):
     """Inventory response model"""
+
     id: int
     odoo_id: Optional[int] = None
     created_at: datetime
@@ -112,6 +125,7 @@ class Inventory(InventoryBase):
 
 class PurchaseOrderBase(BaseModel):
     """Base purchase order model"""
+
     partner_id: int = Field(..., description="Supplier ID")
     date_order: datetime = Field(..., description="Order date")
     order_line: List[Dict] = Field(default_factory=list, description="Order lines")
@@ -119,11 +133,13 @@ class PurchaseOrderBase(BaseModel):
 
 class PurchaseOrderCreate(PurchaseOrderBase):
     """Purchase order creation model"""
+
     pass
 
 
 class PurchaseOrder(PurchaseOrderBase):
     """Purchase order response model"""
+
     id: int
     odoo_id: Optional[int] = None
     state: str
@@ -137,6 +153,7 @@ class PurchaseOrder(PurchaseOrderBase):
 
 class SaleOrderBase(BaseModel):
     """Base sale order model"""
+
     partner_id: int = Field(..., description="Customer ID")
     date_order: datetime = Field(..., description="Order date")
     order_line: List[Dict] = Field(default_factory=list, description="Order lines")
@@ -144,11 +161,13 @@ class SaleOrderBase(BaseModel):
 
 class SaleOrderCreate(SaleOrderBase):
     """Sale order creation model"""
+
     pass
 
 
 class SaleOrder(SaleOrderBase):
     """Sale order response model"""
+
     id: int
     odoo_id: Optional[int] = None
     state: str
@@ -162,6 +181,7 @@ class SaleOrder(SaleOrderBase):
 
 class DeliveryBase(BaseModel):
     """Base delivery model"""
+
     partner_id: int = Field(..., description="Partner ID")
     picking_type_id: int = Field(..., description="Picking type ID")
     scheduled_date: datetime = Field(..., description="Scheduled date")
@@ -170,11 +190,13 @@ class DeliveryBase(BaseModel):
 
 class DeliveryCreate(DeliveryBase):
     """Delivery creation model"""
+
     pass
 
 
 class Delivery(DeliveryBase):
     """Delivery response model"""
+
     id: int
     odoo_id: Optional[int] = None
     state: str
@@ -187,6 +209,7 @@ class Delivery(DeliveryBase):
 
 class AccountingMoveBase(BaseModel):
     """Base accounting move model"""
+
     journal_id: int = Field(..., description="Journal ID")
     # date: date = Field(..., description="Move date")
     ref: Optional[str] = Field(None, description="Reference")
@@ -195,11 +218,13 @@ class AccountingMoveBase(BaseModel):
 
 class AccountingMoveCreate(AccountingMoveBase):
     """Accounting move creation model"""
+
     pass
 
 
 class AccountingMove(AccountingMoveBase):
     """Accounting move response model"""
+
     id: int
     odoo_id: Optional[int] = None
     state: str
@@ -213,6 +238,7 @@ class AccountingMove(AccountingMoveBase):
 
 class SyncResponse(BaseModel):
     """Synchronization response model"""
+
     success: bool
     message: str
     odoo_id: Optional[int] = None
@@ -222,6 +248,7 @@ class SyncResponse(BaseModel):
 
 class BulkSyncRequest(BaseModel):
     """Bulk synchronization request model"""
+
     contacts: List[ContactCreate] = Field(default_factory=list)
     products: List[ProductCreate] = Field(default_factory=list)
     inventory: List[InventoryCreate] = Field(default_factory=list)
@@ -233,6 +260,7 @@ class BulkSyncRequest(BaseModel):
 
 class BulkSyncResponse(BaseModel):
     """Bulk synchronization response model"""
+
     success: bool
     message: str
     results: Dict[str, List[SyncResponse]]

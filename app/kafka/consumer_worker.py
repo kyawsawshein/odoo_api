@@ -1,4 +1,5 @@
 """Kafka consumer worker for async message processing"""
+
 import asyncio
 import signal
 import sys
@@ -12,39 +13,39 @@ logger = structlog.get_logger()
 
 class ConsumerWorker:
     """Worker for processing Kafka messages"""
-    
+
     def __init__(self):
         self.consumer = None
         self.running = False
-    
+
     async def start(self):
         """Start the consumer worker"""
         try:
             self.consumer = create_odoo_consumer()
             self.running = True
-            
+
             # Register signal handlers
             signal.signal(signal.SIGINT, self.signal_handler)
             signal.signal(signal.SIGTERM, self.signal_handler)
-            
+
             logger.info("Starting Kafka consumer worker")
-            
+
             # Start consuming from all Odoo topics
             topics = [
                 "odoo-contacts",
-                "odoo-products", 
+                "odoo-products",
                 "odoo-inventory",
                 "odoo-purchase",
                 "odoo-sales",
-                "odoo-bulk-sync"
+                "odoo-bulk-sync",
             ]
-            
+
             await self.consumer.start_consuming(topics)
-            
+
         except Exception as e:
             logger.error("Failed to start consumer worker", error=str(e))
             raise
-    
+
     def signal_handler(self, signum, frame):
         """Handle shutdown signals"""
         logger.info("Received shutdown signal", signal=signum)
@@ -52,7 +53,7 @@ class ConsumerWorker:
         if self.consumer:
             self.consumer.close()
         sys.exit(0)
-    
+
     async def stop(self):
         """Stop the consumer worker"""
         self.running = False
@@ -64,7 +65,7 @@ class ConsumerWorker:
 async def main():
     """Main entry point for consumer worker"""
     worker = ConsumerWorker()
-    
+
     try:
         await worker.start()
     except KeyboardInterrupt:

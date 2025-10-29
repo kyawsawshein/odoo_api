@@ -149,7 +149,7 @@ async def update_contact(
 
 
 @router.post("/contacts/sync", response_model=SyncResponse, tags=["contacts"])
-async def sync_inventory(
+async def sync_contacts(
     background_tasks: BackgroundTasks,
     current_user: UserSchema = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -173,7 +173,7 @@ async def sync_inventory(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to sync Contact: {str(e)}",
+            detail=f"Failed to sync Contacts: {str(e)}",
         )
 
 
@@ -275,6 +275,35 @@ async def update_product(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to update product: {str(e)}",
+        )
+
+
+@router.post("/product/sync", response_model=SyncResponse, tags=["products"])
+async def sync_porducts(
+    background_tasks: BackgroundTasks,
+    current_user: UserSchema = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Sync Contact data with Odoo"""
+    service = ProductService(db, current_user)
+    try:
+        result = await service.sync_products_from_odoo()
+
+        # Send to Kafka for async processing
+        # background_tasks.add_task(
+        #     # KafkaProducer.send_message,
+        #     "odoo-contact",
+        #     {
+        #         "action": "sync",
+        #         "user_id": current_user.id
+        #     }
+        # )
+
+        return result
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to sync Products: {str(e)}",
         )
 
 

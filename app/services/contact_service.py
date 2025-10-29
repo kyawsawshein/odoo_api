@@ -1,5 +1,6 @@
 """Contact service for managing contacts and Odoo synchronization"""
 
+import structlog
 from typing import List, Optional, Dict, Any
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -8,6 +9,8 @@ from app.auth.schemas import User as UserSchema
 from app.api.schemas import Contact as ContactSchema
 from app.api.models import SyncResponse
 from app.services.base_service import BaseService
+
+logger = structlog.get_logger()
 
 
 class ContactService(BaseService):
@@ -92,7 +95,7 @@ class ContactService(BaseService):
 
         # Query from database
         stmt = select(ContactSchema).where(
-            ContactSchema.id == contact_id,
+            ContactSchema.odoo_id == contact_id,
             # ContactSchema.user_id == self.current_user.id,
         )
         print("Query statement : ", stmt)
@@ -165,13 +168,11 @@ class ContactService(BaseService):
 
             synced_count = 0
             for odoo_contact in odoo_contacts:
-                # Check if contact already exists
                 stmt = select(ContactSchema).where(
                     ContactSchema.odoo_id == odoo_contact["id"]
                 )
                 result = await self.db.execute(stmt)
                 existing_contact = result.scalar_one_or_none()
-
                 if existing_contact:
                     # Update existing contact
                     for field, value in odoo_contact.items():
@@ -181,8 +182,8 @@ class ContactService(BaseService):
                     # Create new contact
                     contact_data = {
                         "name": odoo_contact.get("name"),
-                        "email": odoo_contact.get("email"),
-                        "phone": odoo_contact.get("phone"),
+                        "email": odoo_contact.get("email") or "",
+                        "phone": odoo_contact.get("phone") or "",
                         "odoo_id": odoo_contact["id"],
                         "user_id": self.current_user.id,
                     }
