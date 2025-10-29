@@ -1,14 +1,15 @@
 """Product service for managing products and Odoo synchronization"""
 
-from typing import List, Optional, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-
-from app.auth.schemas import User as UserSchema
-from app.product.schemas import Product as ProductSchema
+from typing import Any, Dict, List, Optional
 
 from app.api.models import SyncResponse
+
+# from app.auth.schemas import User as UserSchema
+from app.product.schemas import Product as ProductSchema
 from app.services.base_service import BaseService
+
+# from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func, select
 
 
 class ProductService(BaseService):
@@ -158,14 +159,14 @@ class ProductService(BaseService):
             await self.db.rollback()
             return await self._handle_odoo_error(e, "product update")
 
-    async def sync_products_from_odoo(self, full:bool=False) -> SyncResponse:
+    async def sync_products_from_odoo(self, full: bool = False) -> SyncResponse:
         """Sync products from Odoo to local database"""
         try:
             domain = []
             if not full:
                 stmt = select(func.max(ProductSchema.write_date))
                 result = await self.db.execute(stmt)
-                last_updated_date =  result.scalar_one_or_none()
+                last_updated_date = result.scalar_one_or_none()
                 if last_updated_date:
                     domain = [("write_date", ">", last_updated_date)]
 

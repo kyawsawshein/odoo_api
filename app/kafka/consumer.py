@@ -1,7 +1,7 @@
 """Kafka consumer for processing async messages"""
 
 import json
-import asyncio
+# import asyncio
 from typing import Dict, Any, Callable
 from kafka import KafkaConsumer
 import structlog

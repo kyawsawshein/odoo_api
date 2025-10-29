@@ -4,10 +4,10 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    Boolean,
+    # Boolean,
     DateTime,
     Text,
-    Numeric,
+    # Numeric,
     ForeignKey,
 )
 from sqlalchemy.sql import func

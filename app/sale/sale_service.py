@@ -1,10 +1,11 @@
 """Sale service for managing sale orders and Odoo synchronization"""
 
-from typing import List, Optional, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Dict, Any
+
+# from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
-from app.auth.schemas import User as UserSchema
+# from app.auth.schemas import User as UserSchema
 from app.api.models import SyncResponse
 from app.services.base_service import BaseService
 

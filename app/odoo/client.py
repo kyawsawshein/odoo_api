@@ -2,8 +2,9 @@
 
 import xmlrpc.client
 from typing import Any, Dict, List, Optional
-import aiohttp
-import asyncio
+
+# import aiohttp
+# import asyncio
 from urllib.parse import urljoin
 
 from app.config import settings

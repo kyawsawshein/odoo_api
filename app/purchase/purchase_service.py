@@ -1,12 +1,13 @@
 """Purchase service for managing purchase orders and Odoo synchronization"""
 
-from typing import List, Optional, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Any, Dict, List
 
-from app.auth.schemas import User as UserSchema
+# from app.auth.schemas import User as UserSchema
 from app.api.models import SyncResponse
 from app.services.base_service import BaseService
+
+# from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
 
 class PurchaseService(BaseService):

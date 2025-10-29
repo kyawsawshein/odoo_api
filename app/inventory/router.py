@@ -11,6 +11,7 @@ from app.auth.schemas import User as UserSchema
 from app.inventory.route_name import Route
 
 from app.database import get_db
+
 # from app.kafka.producer import KafkaProducer
 from app.inventory.inventory_service import InventoryService
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status

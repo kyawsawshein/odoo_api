@@ -1,4 +1,5 @@
 """Authentication utilities"""
+
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -29,10 +30,14 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        )
+
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -43,16 +48,18 @@ def verify_token(token: str) -> TokenData:
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    
+
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         username: str = payload.get("sub")
         user_id: int = payload.get("user_id")
         scopes: list = payload.get("scopes", [])
-        
+
         if username is None or user_id is None:
             raise credentials_exception
-        
+
         return TokenData(username=username, user_id=user_id, scopes=scopes)
     except JWTError:
         raise credentials_exception
@@ -60,25 +67,20 @@ def verify_token(token: str) -> TokenData:
 
 def generate_api_token(name: str, user_id: int, scopes: list) -> str:
     """Generate API token for external integrations"""
-    data = {
-        "name": name,
-        "user_id": user_id,
-        "scopes": scopes,
-        "type": "api_token"
-    }
+    data = {"name": name, "user_id": user_id, "scopes": scopes, "type": "api_token"}
     return create_access_token(data, expires_delta=timedelta(days=365))
 
 
 def validate_api_token(token: str, required_scopes: list = None) -> TokenData:
     """Validate API token and check scopes"""
     token_data = verify_token(token)
-    
+
     if required_scopes:
         for scope in required_scopes:
             if scope not in token_data.scopes:
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"Missing required scope: {scope}"
+                    detail=f"Missing required scope: {scope}",
                 )
-    
+
     return token_data

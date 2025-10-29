@@ -1,15 +1,15 @@
 """Main API router for Odoo FastAPI integration"""
 
-from typing import List, Optional
+# from typing import List, Optional
 
 import structlog
 from app.auth.router import get_current_user
 from app.auth.schemas import User as UserSchema
 
 from app.cache.redis_client import redis_client
-from app.database import get_db
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+# from app.database import get_db
+from fastapi import APIRouter, Depends, HTTPException, status
+# from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

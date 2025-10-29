@@ -1,9 +1,9 @@
 """Main API router for Odoo FastAPI integration"""
 
-from typing import List, Optional
+from typing import List
 
 import structlog
-from app.api.models import  SyncResponse
+from app.api.models import SyncResponse
 from app.purchase.models.model import (
     PurchaseOrder,
     PurchaseOrderCreate,
@@ -13,6 +13,7 @@ from app.auth.schemas import User as UserSchema
 from app.purchase.route_name import Route
 
 from app.database import get_db
+
 # from app.kafka.producer import KafkaProducer
 from app.purchase.purchase_service import PurchaseService
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status

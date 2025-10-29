@@ -1,8 +1,9 @@
 """Base service class with common functionality"""
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Any
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_
+
+# from sqlalchemy import select, and_, or_
 import asyncio
 import structlog
 

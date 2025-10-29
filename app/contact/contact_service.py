@@ -2,10 +2,11 @@
 
 import structlog
 from typing import List, Optional, Dict, Any
-from sqlalchemy.ext.asyncio import AsyncSession
+
+# from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 
-from app.auth.schemas import User as UserSchema
+# from app.auth.schemas import User as UserSchema
 from app.contact.schemas import Contact as ContactSchema
 from app.api.models import SyncResponse
 from app.services.base_service import BaseService

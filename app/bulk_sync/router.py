@@ -1,6 +1,6 @@
 """Main API router for Odoo FastAPI integration"""
 
-from typing import List, Optional
+# from typing import List, Optional
 
 import structlog
 from app.bulk_sync.models.model import (
@@ -11,7 +11,8 @@ from app.auth.router import get_current_user
 from app.auth.schemas import User as UserSchema
 
 from app.kafka.producer import KafkaProducer
-from app.cache.redis_client import redis_client
+
+# from app.cache.redis_client import redis_client
 from app.database import get_db
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,10 +36,7 @@ async def bulk_sync(
         background_tasks.add_task(
             KafkaProducer.send_message,
             "odoo-bulk-sync",
-            {
-                "user_id": current_user.id,
-                "data": request.dict()
-            }
+            {"user_id": current_user.id, "data": request.dict()},
         )
 
         return BulkSyncResponse(

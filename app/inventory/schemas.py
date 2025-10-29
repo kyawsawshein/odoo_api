@@ -4,9 +4,9 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    Boolean,
+    # Boolean,
     DateTime,
-    Text,
+    # Text,
     Numeric,
     ForeignKey,
 )

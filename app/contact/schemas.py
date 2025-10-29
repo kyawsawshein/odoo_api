@@ -6,8 +6,8 @@ from sqlalchemy import (
     String,
     Boolean,
     DateTime,
-    Text,
-    Numeric,
+    # Text,
+    # Numeric,
     ForeignKey,
 )
 from sqlalchemy.sql import func

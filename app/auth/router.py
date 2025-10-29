@@ -1,7 +1,7 @@
 """Authentication router for FastAPI"""
 
 from datetime import timedelta
-from typing import Any, Optional
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -54,15 +54,15 @@ async def get_current_user_optional(
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             return None
-            
+
         token = auth_header.replace("Bearer ", "")
         token_data = verify_token(token)
-        
+
         # Query user from database
         user = await db.get(UserSchema, token_data.user_id)
         if user is None or not user.is_active:
             return None
-            
+
         return user
     except Exception:
         # If any error occurs (invalid token, expired, etc.), return None

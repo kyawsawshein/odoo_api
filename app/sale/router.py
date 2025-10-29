@@ -1,6 +1,6 @@
 """Main API router for Odoo FastAPI integration"""
 
-from typing import List, Optional
+from typing import List
 
 import structlog
 from app.api.models import SyncResponse

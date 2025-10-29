@@ -1,6 +1,6 @@
 """Configuration management for the Odoo FastAPI integration"""
 
-from typing import Optional
+# from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
