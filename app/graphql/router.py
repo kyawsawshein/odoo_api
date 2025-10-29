@@ -11,8 +11,8 @@ from strawberry.types import Info
 from app.auth.router import get_current_user_optional
 from app.auth.schemas import User as UserSchema
 from app.database import get_db
-from app.services.contact_service import ContactService
-from app.services.product_service import ProductService
+from app.contact.contact_service import ContactService
+from app.product.product_service import ProductService
 
 
 @strawberry.type

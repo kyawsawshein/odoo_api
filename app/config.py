@@ -30,10 +30,10 @@ class Settings(BaseSettings):
     ODOO_PASSWORD: str = Field(default="admin", env="ODOO_PASSWORD")
 
     # Kafka Configuration
-    # KAFKA_BOOTSTRAP_SERVERS: str = Field(
-    #     default="localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS"
-    # )
-    # KAFKA_GROUP_ID: str = Field(default="odoo-api-group", env="KAFKA_GROUP_ID")
+    KAFKA_BOOTSTRAP_SERVERS: str = Field(
+        default="localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS"
+    )
+    KAFKA_GROUP_ID: str = Field(default="odoo-api-group", env="KAFKA_GROUP_ID")
 
     # Authentication
     SECRET_KEY: str = Field(

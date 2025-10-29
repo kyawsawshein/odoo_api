@@ -8,6 +8,8 @@ from urllib.parse import urljoin
 
 from app.config import settings
 
+from .datamodels.odoo_data import Contact, Product
+
 
 class OdooClient:
     """Async Odoo XML-RPC client"""
@@ -26,18 +28,12 @@ class OdooClient:
     async def authenticate(self) -> Optional[int]:
         """Authenticate with Odoo and return user ID"""
         try:
-            print(
-                "Odoo client ==================================: ",
-                self.db,
-                self.username,
-                self.password,
-            )
             self.uid = self.common.authenticate(
                 self.db, self.username, self.password, {}
             )
             if not self.uid:
                 raise Exception("Invalid credentials or database name")
-            print("uid : ", self.uid)
+
             return self.uid
         except Exception as e:
             raise Exception(f"Odoo authentication failed: {str(e)}")
@@ -77,11 +73,11 @@ class OdooClient:
         if domain is None:
             domain = []
         if fields is None:
-            fields = ["id", "name", "email", "phone"]
-
-        return await self.execute_kw(
+            fields = list(Contact.model_fields.keys())
+        results = await self.execute_kw(
             "res.partner", "search_read", [domain], {"fields": fields}
         )
+        return [Contact.model_validate(res) for res in results]
 
     # Product Operations
     async def create_product(self, product_data: Dict) -> int:
@@ -101,11 +97,12 @@ class OdooClient:
         if domain is None:
             domain = []
         if fields is None:
-            fields = ["id", "name", "default_code", "list_price", "standard_price"]
+            fields = list(Product.model_fields.keys())
 
-        return await self.execute_kw(
+        results = await self.execute_kw(
             "product.product", "search_read", [domain], {"fields": fields}
         )
+        return [Product.model_validate(res) for res in results]
 
     # Inventory Operations
     async def get_stock_quantities(self, product_ids: List[int] = None) -> List[Dict]:

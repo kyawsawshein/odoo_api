@@ -36,6 +36,7 @@ async def init_db():
     """Initialize database tables"""
     print("database informaton : ", settings.DATABASE_URL)
     async with engine.begin() as conn:
+        # await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
 
