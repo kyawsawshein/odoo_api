@@ -28,12 +28,26 @@ class BaseService:
         )
 
     async def _get_odoo_client(self) -> OdooClientPool:
-        """Get Odoo client from pool"""
-        # In a real implementation, you would get Odoo credentials from user session
+        """Get Odoo client from pool using user session credentials"""
+        # Get Odoo credentials from user session
+        if not self.current_user.odoo_url or not self.current_user.odoo_database:
+            raise ValueError("User has no Odoo credentials configured")
+
+        if not self.current_user.odoo_username or not self.current_user.odoo_password:
+            raise ValueError("User has incomplete Odoo credentials")
+
+        self.logger.info(
+            "Getting Odoo client for user",
+            user_id=self.current_user.id,
+            odoo_url=self.current_user.odoo_url,
+            odoo_database=self.current_user.odoo_database,
+        )
+
         return await self.odoo_pool.get_client(
-            db="odoo",  # This should come from user configuration
-            username="admin",  # This should come from user configuration
-            password="admin",  # This should come from user configuration
+            url=self.current_user.odoo_url,
+            db=self.current_user.odoo_database,
+            username=self.current_user.odoo_username,
+            password=self.current_user.odoo_password,
         )
 
     async def _cache_get(self, key: str) -> Optional[Any]:

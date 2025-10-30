@@ -9,6 +9,7 @@ from app.config import settings
 from app.database import close_db, init_db
 from app.api import router as api_router
 from app.auth import router as auth_router
+from app.auth.profile_router import router as profile_router
 from app.graphql import router as graphql_router
 from app.contact import router as contact_router
 from app.product import router as product_router
@@ -44,6 +45,7 @@ def create_app() -> FastAPI:
     api_prefix = "/api/v1"
     # Include routers
     app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
+    app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
     app.include_router(api_router, prefix=api_prefix, tags=["api"])
     app.include_router(contact_router, prefix=api_prefix)
     app.include_router(product_router, prefix=api_prefix)

@@ -16,6 +16,13 @@ class User(Base):
     full_name = Column(String(255), nullable=True)
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
+
+    # Odoo credentials (encrypted in production)
+    odoo_url = Column(String(255), nullable=True)
+    odoo_database = Column(String(255), nullable=True)
+    odoo_username = Column(String(255), nullable=True)
+    odoo_password = Column(String(255), nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

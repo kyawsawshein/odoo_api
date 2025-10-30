@@ -106,24 +106,9 @@ services:
   #     - .:/app
   #   command: python -m app.kafka.consumer_worker
 
-  # Odoo (for testing integration)
-  # odoo:
-  #   image: odoo:16.0
-  #   ports:
-  #     - "8069:8069"
-  #   environment:
-  #     - HOST=postgres
-  #     - USER=odoo
-  #     - PASSWORD=odoo
-  #   depends_on:
-  #     - postgres
-  #   volumes:
-  #     - odoo_data:/var/lib/odoo
-
 volumes:
   # postgres_data:
   redis_data:
-  # odoo_data:
 
 networks:
   odoo19_odoo19-net:
