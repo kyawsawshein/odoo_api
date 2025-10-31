@@ -65,11 +65,7 @@ class ProductService(BaseService):
             return cached
 
         # Query from database
-
-        stmt = select(ProductSchema).where(
-            ProductSchema.user_id == self.current_user.id
-        )
-
+        stmt = select(ProductSchema)
         if search:
             stmt = stmt.where(
                 ProductSchema.name.ilike(f"%{search}%")

@@ -62,14 +62,12 @@ class ContactService(BaseService):
 
         # Try to get from cache first
         cached = await self._cache_get(cache_key)
+        logger.info(f"Cache data : {cached}")
         if cached:
             return cached
 
         # Query from database
-        stmt = select(ContactSchema).where(
-            ContactSchema.user_id == self.current_user.id
-        )
-
+        stmt = select(ContactSchema)
         if search:
             stmt = stmt.where(
                 ContactSchema.name.ilike(f"%{search}%")
@@ -95,10 +93,7 @@ class ContactService(BaseService):
             return cached
 
         # Query from database
-        stmt = select(ContactSchema).where(
-            ContactSchema.odoo_id == contact_id,
-            # ContactSchema.user_id == self.current_user.id,
-        )
+        stmt = select(ContactSchema).where(ContactSchema.odoo_id == contact_id)
         result = await self.db.execute(stmt)
         contact = result.scalar_one_or_none()
         if contact:
@@ -112,10 +107,7 @@ class ContactService(BaseService):
         """Update contact and sync with Odoo"""
         try:
             # Get contact from database
-            stmt = select(ContactSchema).where(
-                ContactSchema.id == contact_id,
-                # ContactSchema.user_id == self.current_user.id,
-            )
+            stmt = select(ContactSchema).where(ContactSchema.id == contact_id)
             result = await self.db.execute(stmt)
             contact = result.scalar_one_or_none()
 
@@ -192,14 +184,12 @@ class ContactService(BaseService):
                     db_contact.user_id = self.current_user.id
                     self.db.add(db_contact)
                     self.db.add(odoo_contact)
-
                 synced_count += 1
 
             await self.db.commit()
 
             # Clear cache
             await self._cache_delete(f"contacts:{self.current_user.id}")
-
             self.logger.info("Contacts synced from Odoo", synced_count=synced_count)
 
             return self._create_sync_response(

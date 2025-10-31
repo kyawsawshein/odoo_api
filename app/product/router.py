@@ -6,7 +6,7 @@ import structlog
 from app.api.models import SyncResponse
 from app.auth.router import get_current_user
 from app.auth.schemas import User as UserSchema
-from app.database import get_db
+from app.core.database import get_db
 from app.product.models.model import Product, ProductCreate, ProductUpdate
 from app.product.product_service import ProductService
 

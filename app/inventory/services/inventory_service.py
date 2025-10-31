@@ -7,38 +7,12 @@ from sqlalchemy import select
 
 # from app.auth.schemas import User as UserSchema
 from app.api.models import SyncResponse
-from app.services.base_service import BaseService
+from app.inventory.schemas import Inventory as InventorySchema
+from app.inventory.services.inventory import Inventory
 
 
-class InventoryService(BaseService):
+class InventoryService(Inventory):
     """Service for inventory operations"""
-
-    async def get_inventory(self, product_id: Optional[int] = None) -> List[Any]:
-        """Get inventory data"""
-        cache_key = f"inventory:{self.current_user.id}:{product_id}"
-
-        # Try to get from cache first
-        cached = await self._cache_get(cache_key)
-        if cached:
-            return cached
-
-        # Query from database
-        from app.api.schemas import Inventory as InventorySchema
-
-        stmt = select(InventorySchema).where(
-            InventorySchema.user_id == self.current_user.id
-        )
-
-        if product_id:
-            stmt = stmt.where(InventorySchema.product_id == product_id)
-
-        result = await self.db.execute(stmt)
-        inventory = result.scalars().all()
-
-        # Cache the result
-        await self._cache_set(cache_key, inventory, expire=300)
-
-        return inventory
 
     async def sync_inventory(self) -> SyncResponse:
         """Sync inventory data from Odoo"""
@@ -47,8 +21,6 @@ class InventoryService(BaseService):
 
             # Get stock quantities from Odoo
             odoo_stock = await odoo_client.get_stock_quantities()
-
-            from app.api.schemas import Inventory as InventorySchema
 
             synced_count = 0
             for stock_item in odoo_stock:
@@ -112,8 +84,6 @@ class InventoryService(BaseService):
         """Update inventory level and sync with Odoo"""
         try:
             # Get inventory record
-            from app.api.schemas import Inventory as InventorySchema
-
             stmt = select(InventorySchema).where(
                 InventorySchema.product_id == product_id,
                 InventorySchema.user_id == self.current_user.id,

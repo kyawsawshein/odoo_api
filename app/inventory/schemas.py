@@ -10,11 +10,30 @@ from sqlalchemy import (
     Numeric,
     ForeignKey,
 )
-from sqlalchemy.sql import func
-from app.database import Base
+from app.core.schemas import OdooBaseSchema
 
 
-class Inventory(Base):
+class UomSchema(OdooBaseSchema):
+    """Inventory database model"""
+
+    __tablename__ = "uom"
+
+    id = Column(Integer, primary_key=True, index=True)
+    odoo_id = Column(Integer, nullable=False, index=True)
+    name = Column(String(255), nullable=False, index=True)
+
+
+class CategorySchema(OdooBaseSchema):
+    """Inventory database model"""
+
+    __tablename__ = "category"
+
+    id = Column(Integer, primary_key=True, index=True)
+    odoo_id = Column(Integer, nullable=False, index=True)
+    name = Column(String(255), nullable=False, index=True)
+
+
+class Inventory(OdooBaseSchema):
     """Inventory database model"""
 
     __tablename__ = "inventory"
@@ -26,9 +45,3 @@ class Inventory(Base):
     location_id = Column(Integer, nullable=True)
     quantity = Column(Numeric(15, 2), nullable=False)
     lot_id = Column(Integer, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    create_date = Column(String(50), nullable=False)
-    write_date = Column(String(50), nullable=False)

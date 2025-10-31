@@ -10,11 +10,21 @@ from sqlalchemy import (
     Numeric,
     ForeignKey,
 )
-from sqlalchemy.sql import func
-from app.database import Base
+
+from app.core.schemas import OdooBaseSchema
 
 
-class AccountingMove(Base):
+class Currency(OdooBaseSchema):
+    """Currencies database model"""
+
+    __tablename__ = "currency"
+
+    id = Column(Integer, primary_key=True, index=True)
+    odoo_id = Column(Integer, nullable=True, index=True)
+    name = Column(String(50), nullable=False, index=True)
+    symbol = Column(String(10), nullable=False)
+
+class AccountingMove(OdooBaseSchema):
     """Accounting move database model"""
 
     __tablename__ = "accounting_moves"
@@ -28,9 +38,3 @@ class AccountingMove(Base):
     state = Column(String(50), default="draft")
     amount_total = Column(Numeric(15, 2), nullable=True)
     line_ids = Column(Text, nullable=True)  # JSON string
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    create_date = Column(String(50), nullable=False)
-    write_date = Column(String(50), nullable=False)

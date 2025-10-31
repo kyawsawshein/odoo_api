@@ -1,11 +1,10 @@
 """Database schemas for authentication"""
 
-from app.database import Base
+from app.core.schemas import BaseSchema
 from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
-from sqlalchemy.sql import func
 
 
-class User(Base):
+class User(BaseSchema):
     """User database model"""
 
     __tablename__ = "users"
@@ -23,16 +22,11 @@ class User(Base):
     odoo_username = Column(String(255), nullable=True)
     odoo_password = Column(String(255), nullable=True)
 
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
 
 
-class OdooSession(Base):
+class OdooSession(BaseSchema):
     """Odoo session storage for user authentication"""
 
     __tablename__ = "odoo_sessions"
@@ -43,14 +37,12 @@ class OdooSession(Base):
     odoo_session_id = Column(String(255), nullable=False)
     odoo_database = Column(String(255), nullable=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    expires_at = Column(DateTime(timezone=True), nullable=False)
 
     def __repr__(self):
         return f"<OdooSession(user_id={self.user_id}, odoo_uid={self.odoo_uid})>"
 
 
-class APIToken(Base):
+class APIToken(BaseSchema):
     """API token for external integrations"""
 
     __tablename__ = "api_tokens"
@@ -61,8 +53,6 @@ class APIToken(Base):
     user_id = Column(Integer, nullable=False)
     scopes = Column(Text, nullable=False)  # JSON string of allowed scopes
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    expires_at = Column(DateTime(timezone=True), nullable=True)
 
     def __repr__(self):
         return f"<APIToken(name='{self.name}', user_id={self.user_id})>"

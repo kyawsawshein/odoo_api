@@ -10,11 +10,10 @@ from sqlalchemy import (
     Numeric,
     ForeignKey,
 )
-from sqlalchemy.sql import func
-from app.database import Base
+from app.core.schemas import BaseSchema, OdooBaseSchema
 
 
-class Product(Base):
+class Product(OdooBaseSchema):
     """Product database model"""
 
     __tablename__ = "products"
@@ -30,9 +29,3 @@ class Product(Base):
     categ_id = Column(Integer, nullable=True)
     uom_id = Column(Integer, nullable=True)
     description = Column(Text, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    create_date = Column(String(50), nullable=False)
-    write_date = Column(String(50), nullable=False)

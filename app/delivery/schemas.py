@@ -10,11 +10,10 @@ from sqlalchemy import (
     # Numeric,
     ForeignKey,
 )
-from sqlalchemy.sql import func
-from app.database import Base
+from app.core.schemas import BaseSchema, OdooBaseSchema
 
 
-class Delivery(Base):
+class Delivery(OdooBaseSchema):
     """Delivery database model"""
 
     __tablename__ = "deliveries"
@@ -27,9 +26,3 @@ class Delivery(Base):
     scheduled_date = Column(DateTime(timezone=True), nullable=False)
     state = Column(String(50), default="draft")
     move_lines = Column(Text, nullable=True)  # JSON string
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    create_date = Column(String(50), nullable=False)
-    write_date = Column(String(50), nullable=False)

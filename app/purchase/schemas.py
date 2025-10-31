@@ -10,11 +10,10 @@ from sqlalchemy import (
     Numeric,
     ForeignKey,
 )
-from sqlalchemy.sql import func
-from app.database import Base
+from app.core.schemas import BaseSchema,  OdooBaseSchema
 
 
-class PurchaseOrder(Base):
+class PurchaseOrder(OdooBaseSchema):
     """Purchase order database model"""
 
     __tablename__ = "purchase_orders"
@@ -27,9 +26,3 @@ class PurchaseOrder(Base):
     state = Column(String(50), default="draft")
     amount_total = Column(Numeric(15, 2), nullable=True)
     order_line = Column(Text, nullable=True)  # JSON string
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    create_date = Column(String(50), nullable=False)
-    write_date = Column(String(50), nullable=False)

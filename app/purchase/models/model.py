@@ -12,20 +12,21 @@ class PurchaseOrderBase(BaseModel):
     partner_id: int = Field(..., description="Supplier ID")
     currency_id: int
     date_order: datetime = Field(..., description="Order date")
-    # order_line: List[Dict] = Field(default_factory=list, description="Order lines")
 
 
 class PurchaseOrderLine(BaseModel):
+    """Purchase order line model"""
+
     product_id: int
     product_qty: float
     product_uom_id: int
     price_unit: float
-    tax_ids: list
+    tax_ids: list[int] = None
     price_subtotal: float
 
 
 class PurchaseOrderCreate(PurchaseOrderBase):
-    """Purchase order creation model"""
+    """Purchase order model"""
 
     order_line: List[PurchaseOrderLine] = Field(
         default_factory=list, description="Order lines"

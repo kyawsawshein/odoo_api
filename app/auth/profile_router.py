@@ -7,17 +7,27 @@ from sqlalchemy import select
 import structlog
 
 from app.auth.router import get_current_user
+from app.auth.utils import (
+    create_access_token,
+    generate_api_token,
+    get_password_hash,
+    verify_password,
+    verify_token,
+)
 from app.auth.schemas import User as UserSchema
-from app.auth.models import OdooUserCredentials
-from app.database import get_db
+from app.auth.models.models import OdooUserCredentials
+from app.core.database import get_db
 from app.odoo.client import OdooClient
+from app.auth.route_name import Route
+from app.config import settings
+
 
 logger = structlog.get_logger()
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
 
-@router.get("/odoo-credentials", response_model=Optional[OdooUserCredentials])
+@router.get(Route.odoo_credentials, response_model=Optional[OdooUserCredentials])
 async def get_odoo_credentials(
     current_user: UserSchema = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -53,7 +63,7 @@ async def get_odoo_credentials(
         )
 
 
-@router.post("/odoo-credentials", response_model=dict)
+@router.post(Route.odoo_credentials, response_model=dict)
 async def set_odoo_credentials(
     credentials: OdooUserCredentials,
     current_user: UserSchema = Depends(get_current_user),
@@ -62,21 +72,19 @@ async def set_odoo_credentials(
     """Set user's Odoo credentials and test connection"""
     try:
         # Test Odoo connection first
-        odoo_client = OdooClient()
-
         # Use environment Odoo URL or default to common Odoo URL
-        from app.config import settings
-
         odoo_url = settings.ODOO_URL or "http://localhost:8069"
-
-        # Test authentication
-        uid = await odoo_client.authenticate(
+        logger.info(f"odoo credentials : {odoo_url, credentials}")
+        odoo_client = OdooClient(
             url=odoo_url,
             db=credentials.odoo_database,
             username=credentials.odoo_username,
             password=credentials.odoo_password,
         )
 
+        # Test authentication
+        uid = await odoo_client.authenticate()
+        logger.info(f"UID : {uid}")
         if not uid:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -87,7 +95,7 @@ async def set_odoo_credentials(
         stmt = select(UserSchema).where(UserSchema.id == current_user.id)
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
-
+        logger.info(f"User : {user}")
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
@@ -126,7 +134,7 @@ async def set_odoo_credentials(
         )
 
 
-@router.delete("/odoo-credentials", response_model=dict)
+@router.delete(Route.odoo_credentials, response_model=dict)
 async def delete_odoo_credentials(
     current_user: UserSchema = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -165,28 +173,27 @@ async def delete_odoo_credentials(
         )
 
 
-@router.post("/odoo-credentials/test", response_model=dict)
+@router.post(Route.odoo_credentials_test, response_model=dict)
 async def test_odoo_credentials(
     credentials: OdooUserCredentials,
     current_user: UserSchema = Depends(get_current_user),
 ):
     """Test Odoo credentials without saving them"""
     try:
-        odoo_client = OdooClient()
-
         # Use environment Odoo URL or default to common Odoo URL
-        from app.config import settings
-
         odoo_url = settings.ODOO_URL or "http://localhost:8069"
+        logger.info(f"odoo credentials : {odoo_url, credentials}")
 
-        # Test authentication
-        uid = await odoo_client.authenticate(
+        odoo_client = OdooClient(
             url=odoo_url,
             db=credentials.odoo_database,
             username=credentials.odoo_username,
             password=credentials.odoo_password,
         )
 
+        # Test authentication
+        uid = await odoo_client.authenticate()
+        logger.info(f"User : {uid}")
         if not uid:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -194,19 +201,8 @@ async def test_odoo_credentials(
             )
 
         # Test basic operations
-        contact_count = await odoo_client.search_contacts(
-            url=odoo_url,
-            db=credentials.odoo_database,
-            username=credentials.odoo_username,
-            password=credentials.odoo_password,
-        )
-
-        product_count = await odoo_client.search_products(
-            url=odoo_url,
-            db=credentials.odoo_database,
-            username=credentials.odoo_username,
-            password=credentials.odoo_password,
-        )
+        contact_count = await odoo_client.search_contacts()
+        product_count = await odoo_client.search_products()
 
         logger.info(
             "Odoo credentials test successful",

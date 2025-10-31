@@ -6,6 +6,17 @@ from datetime import datetime
 from decimal import Decimal
 
 
+class Category(BaseModel):
+    id: int
+    name: str
+    parent_id: int
+
+
+class Uom(BaseModel):
+    id: int
+    name: str
+
+
 class InventoryBase(BaseModel):
     """Base inventory model"""
 

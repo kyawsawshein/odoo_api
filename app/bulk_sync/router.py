@@ -13,7 +13,7 @@ from app.auth.schemas import User as UserSchema
 from app.kafka.producer import KafkaProducer
 
 # from app.cache.redis_client import redis_client
-from app.database import get_db
+from odoo_api.app.core.database import get_db
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

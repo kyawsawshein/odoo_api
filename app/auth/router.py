@@ -8,7 +8,7 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth.models import OdooUserCredentials, Token, User, UserCreate
+from app.auth.models.models import OdooUserCredentials, Token, User, UserCreate
 from app.auth.schemas import User as UserSchema
 from app.auth.utils import (
     create_access_token,
@@ -17,7 +17,7 @@ from app.auth.utils import (
     verify_password,
     verify_token,
 )
-from app.database import get_db
+from app.core.database import get_db
 from app.odoo.client import OdooClient
 from app.config import settings
 

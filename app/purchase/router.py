@@ -12,7 +12,7 @@ from app.auth.router import get_current_user
 from app.auth.schemas import User as UserSchema
 from app.purchase.route_name import Route
 
-from app.database import get_db
+from app.core.database import get_db
 
 # from app.kafka.producer import KafkaProducer
 from app.purchase.purchase_service import PurchaseService

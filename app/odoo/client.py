@@ -9,8 +9,7 @@ from urllib.parse import urljoin
 
 from app.config import settings
 
-from .datamodels.odoo_data import Contact, Product
-
+from .datamodels.odoo_data import ContactData, ProductData, UomData, CategoryData, CurrencyData
 
 class OdooClient:
     """Async Odoo XML-RPC client"""
@@ -74,11 +73,11 @@ class OdooClient:
         if domain is None:
             domain = []
         if fields is None:
-            fields = list(Contact.model_fields.keys())
+            fields = list(ContactData.model_fields.keys())
         results = await self.execute_kw(
             "res.partner", "search_read", [domain], {"fields": fields}
         )
-        return [Contact.model_validate(res) for res in results]
+        return [ContactData.model_validate(res) for res in results]
 
     # Product Operations
     async def create_product(self, product_data: Dict) -> int:
@@ -98,12 +97,12 @@ class OdooClient:
         if domain is None:
             domain = []
         if fields is None:
-            fields = list(Product.model_fields.keys())
+            fields = list(ProductData.model_fields.keys())
 
         results = await self.execute_kw(
             "product.product", "search_read", [domain], {"fields": fields}
         )
-        return [Product.model_validate(res) for res in results]
+        return [ProductData.model_validate(res) for res in results]
 
     # Inventory Operations
     async def get_stock_quantities(self, product_ids: List[int] = None) -> List[Dict]:
@@ -213,6 +212,39 @@ class OdooClient:
         """Delete record"""
         return await self.execute_kw(model, "unlink", [[record_id]])
 
+    # Uom
+    async def search_uom(self, domain: List = None) -> List[Dict]:
+        """Search uom with domain and fields"""
+        if domain is None:
+            domain = []
+        fields = list(UomData.model_fields.keys())
+        results = await self.execute_kw(
+            "uom.uom", "search_read", [domain], {"fields": fields}
+        )
+        return [UomData.model_validate(res) for res in results]
+
+    # Categroy
+    async def search_category(self, domain: List = None) -> List[Dict]:
+        """Search categories with domain and fields"""
+        if domain is None:
+            domain = []
+        fields = list(CategoryData.model_fields.keys())
+        results = await self.execute_kw(
+            "uom.uom", "search_read", [domain], {"fields": fields}
+        )
+        return [CategoryData.model_validate(res) for res in results]
+
+     # Currency
+    async def search_currency(self, domain: List = None) -> List[Dict]:
+        """Search categories with domain and fields"""
+        if domain is None:
+            domain = []
+        fields = list(CurrencyData.model_fields.keys())
+        results = await self.execute_kw(
+            "res.currency", "search_read", [domain], {"fields": fields}
+        )
+        return [CurrencyData.model_validate(res) for res in results]
+    
 
 class OdooClientPool:
     """Pool of Odoo clients for concurrent operations"""
@@ -220,12 +252,14 @@ class OdooClientPool:
     def __init__(self):
         self.clients = {}
 
-    async def get_client(self, db: str, username: str, password: str) -> OdooClient:
+    async def get_client(
+        self, url: str, db: str, username: str, password: str
+    ) -> OdooClient:
         """Get or create Odoo client from pool"""
         key = f"{db}:{username}"
 
         if key not in self.clients:
-            client = OdooClient(settings.ODOO_URL, db, username, password)
+            client = OdooClient(url or settings.ODOO_URL, db, username, password)
             await client.authenticate()
             self.clients[key] = client
 

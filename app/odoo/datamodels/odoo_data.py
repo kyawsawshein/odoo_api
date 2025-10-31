@@ -2,13 +2,32 @@ from typing import Optional
 from pydantic import BaseModel, model_validator
 
 
-class Contact(BaseModel):
+class Base(BaseModel):
+    create_date: str
+    write_date: str
+
+
+class UomData(Base):
+    id: int
+    name: str
+
+
+class CategoryData(Base):
+    id: int
+    name: str
+
+
+class CurrencyData(Base):
+    id: int
+    name: str
+    symbol: str
+
+
+class ContactData(Base):
     id: int
     name: str
     email: Optional[str] = None
     phone: Optional[str] = None
-    create_date: str
-    write_date: str
 
     @model_validator(mode="before")
     @classmethod
@@ -25,14 +44,12 @@ class Contact(BaseModel):
         return values
 
 
-class Product(BaseModel):
+class ProductData(Base):
     id: int
     name: str
     default_code: Optional[str] = None
     list_price: Optional[float] = 0.0
     standard_price: Optional[float] = 0.0
-    create_date: str
-    write_date: str
 
     @model_validator(mode="before")
     @classmethod

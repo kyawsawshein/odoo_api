@@ -9,13 +9,13 @@ services:
     environment:
       - DATABASE_URL=postgresql+asyncpg://odoo:admin@db:5432/odoo_api
       # - REDIS_URL=redis://redis:6379/0
-      - ODOO_URL=http://odoo19:8090
-      - ODOO_DATABASE=odoo
-      - ODOO_USERNAME=admin
-      - ODOO_PASSWORD=admin
-      # - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-      - SECRET_KEY=kss12345
-      - DEBUG=True
+      - ODOO_URL=${ODOO_URL}
+      # - ODOO_DATABASE=${ODOO_DATABASE}
+      # - ODOO_USERNAME=${ODOO_USERNAME}
+      # - ODOO_PASSWORD=${ODOO_PASSWORD}
+      - KAFKA_BOOTSTRAP_SERVERS=${KAFKA_BOOTSTRAP_SERVERS}
+      - SECRET_KEY=${SECRET_KEY}
+      - DEBUG=${DEBUG}
     # depends_on:
       # - postgres
       # - redis
@@ -76,8 +76,8 @@ services:
   #   environment:
   #     KAFKA_BROKER_ID: 1
   #     KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
-  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+  #     KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
   #     KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
   #     KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
   #   healthcheck:
@@ -86,18 +86,18 @@ services:
   #     timeout: 10s
   #     retries: 3
 
-  # Kafka Consumer Worker
+  # # Kafka Consumer Worker
   # kafka-consumer:
   #   build: .
   #   environment:
-  #     - DATABASE_URL=postgresql+asyncpg://odoo:admin@postgres:5432/odoo_api
-  #     - REDIS_URL=redis://redis:6379/0
+  #     - DATABASE_URL=${DATABASE_URL}
+  #     - REDIS_URL=${REDIS_URL}
   #     - ODOO_URL=http://odoo:8090
-  #     - ODOO_DATABASE=odoo
-  #     - ODOO_USERNAME=admin
-  #     - ODOO_PASSWORD=admin
+  #     - ODOO_DATABASE=${ODOO_DATABASE}
+  #     - ODOO_USERNAME=${ODOO_USERNAME}
+  #     - ODOO_PASSWORD=${ODOO_PASSWORD}
   #     - KAFKA_BOOTSTRAP_SERVERS=kafka:9092
-  #     - KAFKA_GROUP_ID=odoo-processors
+  #     - KAFKA_GROUP_ID=${KAFKA_GROUP_ID}
   #   depends_on:
   #     # - postgres
   #     - redis

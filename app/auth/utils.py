@@ -7,7 +7,7 @@ from passlib.context import CryptContext
 from fastapi import HTTPException, status
 
 from app.config import settings
-from app.auth.models import TokenData
+from app.auth.models.models import TokenData
 
 
 # Password hashing context

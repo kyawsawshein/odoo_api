@@ -13,7 +13,7 @@ from app.auth.schemas import User as UserSchema
 from app.sale.route_name import Route
 
 # from app.kafka.producer import KafkaProducer
-from app.database import get_db
+from app.core.database import get_db
 from app.sale.sale_service import SaleService
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession

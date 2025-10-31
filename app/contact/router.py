@@ -11,7 +11,7 @@ from app.contact.models.model import Contact, ContactCreate, ContactUpdate
 from app.contact.route_name import Router
 
 # from app.kafka.producer import KafkaProducer
-from app.database import get_db
+from app.core.database import get_db
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,7 +24,6 @@ router = APIRouter(prefix="/contacts", tags=["Contacts"])
 @router.post(Router.contact, response_model=SyncResponse)
 async def create_contact(
     contact: ContactCreate,
-    background_tasks: BackgroundTasks,
     current_user: UserSchema = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -32,19 +31,6 @@ async def create_contact(
     service = ContactService(db, current_user)
     try:
         result = await service.create_contact(contact.dict())
-
-        # Send to Kafka for async processing
-        # background_tasks.add_task(
-        #     KafkaProducer.send_message,
-        #     "odoo-contacts",
-        #     {
-        #         "action": "create",
-        #         "user_id": current_user.id,
-        #         "contact_data": contact.dict(),
-        #         "local_id": result.local_id
-        #     }
-        # )
-
         return result
     except Exception as e:
         raise HTTPException(

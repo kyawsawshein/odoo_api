@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.config import settings
-from app.database import close_db, init_db
+from app.core.database import close_db, init_db
 from app.api import router as api_router
 from app.auth import router as auth_router
 from app.auth.profile_router import router as profile_router
@@ -16,6 +16,7 @@ from app.product import router as product_router
 from app.inventory import router as inventory_router
 from app.purchase import router as purchase_router
 from app.sale import router as sale_router
+from app.account import router as account_router
 
 
 def create_app() -> FastAPI:
@@ -52,6 +53,7 @@ def create_app() -> FastAPI:
     app.include_router(inventory_router, prefix=api_prefix)
     app.include_router(purchase_router, prefix=api_prefix)
     app.include_router(sale_router, prefix=api_prefix)
+    app.include_router(account_router, prefix=api_prefix)
     app.include_router(graphql_router, prefix="/graphql", tags=["graphql"])
 
     # Startup and shutdown events

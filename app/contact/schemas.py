@@ -11,10 +11,10 @@ from sqlalchemy import (
     ForeignKey,
 )
 from sqlalchemy.sql import func
-from app.database import Base
+from app.core.schemas import BaseSchema, OdooBaseSchema
 
 
-class Contact(Base):
+class Contact(OdooBaseSchema):
     """Contact database model"""
 
     __tablename__ = "contacts"
@@ -30,9 +30,3 @@ class Contact(Base):
     country_id = Column(Integer, nullable=True)
     is_company = Column(Boolean, default=False)
     company_type = Column(String(50), nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-    create_date = Column(String(50), nullable=False)
-    write_date = Column(String(50), nullable=False)
