@@ -55,6 +55,15 @@ class OdooClient:
         except Exception as e:
             raise Exception(f"Odoo operation failed: {str(e)}")
 
+    # Projecet Operations
+    async def create_project(self, project_data: Dict) -> int:
+        """Create a new contact in Odoo"""
+        return await self.execute_kw("project.project", "create", [project_data])
+
+    async def update_project(self, project_id: int, project_data: Dict) -> bool:
+        """Update existing contact"""
+        return await self.execute_kw("project.project", "write", [[project_id], project_data])
+
     # Contact Operations
     async def create_contact(self, contact_data: Dict) -> int:
         """Create a new contact in Odoo"""
@@ -182,7 +191,7 @@ class OdooClient:
 
     # Generic Operations
     async def search_records(
-        self, model: str, domain: List = None, fields: List = None, limit: int = None
+        self, model: str, domain: List = None, fields: List = None, limit: int = None, offset: int = None
     ) -> List[Dict]:
         """Generic search records from any model"""
         if domain is None:
@@ -193,8 +202,29 @@ class OdooClient:
         kwargs = {"fields": fields}
         if limit:
             kwargs["limit"] = limit
+        if offset:
+            kwargs["offset"] = offset
 
         return await self.execute_kw(model, "search_read", [domain], kwargs)
+
+    async def read_records(
+        self, model: str, record_ids: List[int], fields: List = None
+    ) -> List[Dict]:
+        """Read multiple records by IDs"""
+        if fields is None:
+            fields = ["id", "name"]
+
+        return await self.execute_kw(
+            model, "read", [record_ids], {"fields": fields}
+        )
+
+    async def create_record(self, model: str, values: Dict) -> int:
+        """Create a new record in any model"""
+        return await self.execute_kw(model, "create", [values])
+
+    async def update_record(self, model: str, record_id: int, values: Dict) -> bool:
+        """Update existing record in any model"""
+        return await self.execute_kw(model, "write", [[record_id], values])
 
     async def read_record(
         self, model: str, record_id: int, fields: List = None
