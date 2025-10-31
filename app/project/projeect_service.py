@@ -422,6 +422,111 @@ class ProjectService(BaseService):
             )
             raise
 
+    async def create_task(
+        self, project_id: int, task_data: Dict[str, Any]
+    ) -> SyncResponse:
+        """Create task in project and sync with Odoo"""
+        try:
+            odoo_client = await self._get_odoo_client()
+            
+            # Ensure project_id is included
+            task_data['project_id'] = project_id
+            
+            task_id = await odoo_client.create_record(
+                model="project.task",
+                values=task_data
+            )
+            
+            self.logger.info(
+                "Task created successfully",
+                task_id=task_id,
+                project_id=project_id,
+            )
+
+            return self._create_sync_response(
+                success=True,
+                message="Task created and synced with Odoo",
+                odoo_id=task_id,
+            )
+
+        except Exception as e:
+            await self.db.rollback()
+            return await self._handle_odoo_error(e, "task creation")
+
+    async def get_task_details(self, task_id: int) -> Optional[Dict[str, Any]]:
+        """Get specific task details"""
+        odoo_client = await self._get_odoo_client()
+        try:
+            # Read task details
+            task = await odoo_client.read_record(
+                model="project.task",
+                record_id=task_id,
+                fields=[
+                    'id', 'name', 'description', 'progress', 'user_ids', 'tag_ids',
+                    'planned_date_begin', 'planned_date_end', 'effective_hours',
+                    'is_timer_running', 'parent_id', 'depend_on_ids', 'project_id'
+                ]
+            )
+            
+            if not task:
+                return None
+            
+            # Get assignees
+            assignees = []
+            if task.get('user_ids'):
+                user_ids = task['user_ids']
+                users = await odoo_client.read_records(
+                    model="res.users",
+                    record_ids=user_ids,
+                    fields=['id', 'name', 'email', 'image_1920']
+                )
+                assignees = [
+                    {
+                        'id': user['id'],
+                        'name': user['name'],
+                        'email': user.get('email', ''),
+                        'avatar': user.get('image_1920')
+                    }
+                    for user in users
+                ]
+            
+            # Get tags
+            tags = []
+            if task.get('tag_ids'):
+                tag_ids = task['tag_ids']
+                tag_records = await odoo_client.read_records(
+                    model="project.tags",
+                    record_ids=tag_ids,
+                    fields=['name']
+                )
+                tags = [tag['name'] for tag in tag_records]
+            
+            # Get blocking tasks
+            blocked_by_task_id = None
+            if task.get('depend_on_ids'):
+                blocked_by_task_id = task['depend_on_ids'][0] if task['depend_on_ids'] else None
+            
+            return {
+                'id': task['id'],
+                'name': task['name'],
+                'description': task.get('description'),
+                'progress': task.get('progress', 0),
+                'assignees': assignees,
+                'tags': tags,
+                'blocked_by_task_id': blocked_by_task_id,
+                'checklist': [],  # Odoo doesn't have built-in checklist
+                'planned_start': task.get('planned_date_begin'),
+                'planned_stop': task.get('planned_date_end'),
+                'real_duration_seconds': int(task.get('effective_hours', 0) * 3600),
+                'timer_running': task.get('is_timer_running', False),
+                'subtasks': [],  # Would need recursive call for subtasks
+                'files': []  # Would need to fetch task files
+            }
+            
+        except Exception as e:
+            self.logger.error("Failed to fetch task details", task_id=task_id, error=str(e))
+            return None
+
     async def update_project(
         self, project_id: int, project_data: Dict[str, Any]
     ) -> SyncResponse:
