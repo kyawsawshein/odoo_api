@@ -2,6 +2,7 @@
 
 from datetime import datetime
 from typing import Optional
+
 from pydantic import BaseModel, EmailStr
 
 
@@ -23,7 +24,7 @@ class TokenData(BaseModel):
 
 class UserBase(BaseModel):
     """Base user model"""
-
+    id: int
     username: str
     email: EmailStr
     full_name: Optional[str] = None
@@ -47,9 +48,10 @@ class UserUpdate(BaseModel):
 class User(UserBase):
     """User response model"""
 
-    id: int
-    created_at: datetime
-    updated_at: datetime
+    odoo_url: str
+    odoo_database: str
+    odoo_username: str
+    odoo_password: str
 
     class Config:
         from_attributes = True
@@ -67,3 +69,11 @@ class OdooUserCredentials(BaseModel):
     odoo_username: str
     odoo_password: str
     odoo_database: str
+
+
+class OdooJWTLoginCredentials(BaseModel):
+    """Odoo JWT login credentials"""
+
+    login: str
+    password: str
+    db: str

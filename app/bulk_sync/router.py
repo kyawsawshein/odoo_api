@@ -8,7 +8,7 @@ from app.bulk_sync.models.model import (
     BulkSyncResponse,
 )
 from app.auth.router import get_current_user
-from app.auth.schemas import User as UserSchema
+from app.auth.schemas.schemas import User as UserSchema
 
 from app.kafka.producer import KafkaProducer
 

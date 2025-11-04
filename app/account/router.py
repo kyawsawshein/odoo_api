@@ -1,9 +1,9 @@
 """Main API router for Odoo FastAPI integration"""
 
 import structlog
-from app.api.models import SyncResponse
+from app.api.models.models import SyncResponse
 from app.auth.router import get_current_user
-from app.auth.schemas import User as UserSchema
+from app.auth.models.models import User
 from app.account.accounting_service import AccountingService
 from app.account.models.currency import Currency
 from app.account.route_name import Route
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/accounts", tags=["Accounts"])
 @router.get(Route.currencies, response_model=Currency)
 async def get_currency(
     currency: str,
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get specific contact by ID"""
@@ -37,7 +37,7 @@ async def get_currency(
 
 @router.post(Route.currencies_sync, response_model=SyncResponse)
 async def sync_contacts(
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     full: bool = False,
 ):

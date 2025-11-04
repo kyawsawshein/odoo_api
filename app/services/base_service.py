@@ -6,10 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 import asyncio
 import structlog
 
-from app.auth.schemas import User as UserSchema
-from app.api.models import SyncResponse
+from app.auth.models.models import User
+from app.api.models.models import SyncResponse
 from app.odoo.client import OdooClientPool
 from app.cache.redis_client import redis_client
+from app.config import settings
 
 
 logger = structlog.get_logger()
@@ -18,7 +19,7 @@ logger = structlog.get_logger()
 class BaseService:
     """Base service class with common functionality"""
 
-    def __init__(self, db: AsyncSession, current_user: UserSchema):
+    def __init__(self, db: AsyncSession, current_user: User):
         self.db = db
         self.current_user = current_user
         self.odoo_pool = OdooClientPool()

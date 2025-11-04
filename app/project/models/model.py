@@ -1,8 +1,19 @@
 """Pydantic models for API requests and responses"""
 
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field
+
+
+class User(BaseModel):
+    id: int
+    name: str
+    login: str
+
+class ProjectTag(BaseModel):
+    id: int
+    name: str
 
 
 # User (assignee/team member)
@@ -41,13 +52,24 @@ class ProjectTask(BaseModel):
     progress: int = Field(..., ge=0, le=100)  # 0–100
     user_ids: List[ProjectUser] = []
     tag_ids: List[str] = []
-    
-    blocked_by_task_id: Optional[int] = None  # ID of blocking task (null if none)
     checklist: List[ChecklistItem] = []
-    planned_start: Optional[str] = None
-    planned_stop: Optional[str] = None
-    real_duration_seconds: int = 0  # e.g., 7200 = 2 hrs
-    timer_running: bool = False
+    subtasks: List["ProjectTask"] = []  # recursive
+
+
+# Task (recursive, with dependencies)
+class CreateProjectTask(BaseModel):
+    name: str
+    description: Optional[str] = None
+    progress: int = Field(..., ge=0, le=100)  # 0–100
+    user_ids: List[ProjectUser] = []
+    tag_ids: List[str] = []
+    assignees: int = 0
+    # blocked_by_task_id: Optional[int] = None  # ID of blocking task (null if none)
+    checklist: List[ChecklistItem] = []
+    # planned_start: Optional[str] = None
+    # planned_stop: Optional[str] = None
+    # real_duration_seconds: int = 0  # e.g., 7200 = 2 hrs
+    # timer_running: bool = False
     subtasks: List["ProjectTask"] = []  # recursive
     files: List[ProjectFile] = []  # linked documents
 
@@ -55,21 +77,30 @@ class ProjectTask(BaseModel):
 # Project (top-level)
 class Project(BaseModel):
     id: int
-    name: str  # e.g., "Production - Engineering 2025"
-    category: str  # e.g., "#RB"
-    project_color: str  # hex or CSS color
-    priority: str = Field(..., description="Priority: low, normal, high")
-    team: List[ProjectUser] = []
-    allocated_hours: float  # e.g., 20.0 → "20:00"
-    deadline: Optional[str] = None
-    progress: int = Field(..., ge=0, le=100)  # roll-up from tasks
-    sales_order: Optional[str] = None  # e.g., "SO012345"
-    item_number: Optional[str] = None
-    graphics_project_link: Optional[str] = None  # URL
-    zervi_website: Optional[str] = None  # URL
-    description: Optional[str] = None
-    tasks: List[ProjectTask] = []
-    files: List[ProjectFile] = []  # project-level docs
+    name: str
+    color: Optional[str] = None
+    user_id: int
+    allocated_hours: Optional[float] = None
+
+
+class ProjectTask(BaseModel):
+    id: int
+    name: str
+    project_id: int
+    description: Optional[str] =  None
+    progress: Optional[float] = None
+    user_ids: Optional[List[int]] = None
+    tag_ids: Optional[List[int]] = None
+    effective_hours: Optional[float] = 0.0
+    parent_id: Optional[int] = None
+  
+
+class Attachment(BaseModel):
+    id: int
+    name: str
+    mimetype: str
+    datas: Optional[Any] = None
+    create_date: datetime
 
 
 # Request/Update models

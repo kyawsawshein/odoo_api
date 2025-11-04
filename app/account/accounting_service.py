@@ -6,7 +6,7 @@ from typing import List, Dict, Any, Optional
 # from sqlalchemy import select
 from sqlalchemy import select, func
 
-from app.api.models import SyncResponse
+from app.api.models.models import SyncResponse
 from app.services.base_service import BaseService
 from app.account.schemas import Currency as CurrencySchema
 

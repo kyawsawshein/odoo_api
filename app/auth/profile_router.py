@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import structlog
 
-from app.auth.router import get_current_user
+from app.auth.api.v1 import get_current_user
 from app.auth.utils import (
     create_access_token,
     generate_api_token,
@@ -14,11 +14,11 @@ from app.auth.utils import (
     verify_password,
     verify_token,
 )
-from app.auth.schemas import User as UserSchema
+from app.auth.models.models import User
 from app.auth.models.models import OdooUserCredentials
 from app.core.database import get_db
 from app.odoo.client import OdooClient
-from app.auth.route_name import Route
+from app.auth.api.route_name import Route
 from app.config import settings
 
 
@@ -29,13 +29,13 @@ router = APIRouter(prefix="/profile", tags=["profile"])
 
 @router.get(Route.odoo_credentials, response_model=Optional[OdooUserCredentials])
 async def get_odoo_credentials(
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Get user's Odoo credentials"""
     try:
         # Get user from database to get latest credentials
-        stmt = select(UserSchema).where(UserSchema.id == current_user.id)
+        stmt = select(User).where(User.id == current_user.id)
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
 
@@ -66,7 +66,7 @@ async def get_odoo_credentials(
 @router.post(Route.odoo_credentials, response_model=dict)
 async def set_odoo_credentials(
     credentials: OdooUserCredentials,
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Set user's Odoo credentials and test connection"""
@@ -92,7 +92,7 @@ async def set_odoo_credentials(
             )
 
         # Update user with Odoo credentials
-        stmt = select(UserSchema).where(UserSchema.id == current_user.id)
+        stmt = select(User).where(User.id == current_user.id)
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
         logger.info(f"User : {user}")
@@ -136,13 +136,13 @@ async def set_odoo_credentials(
 
 @router.delete(Route.odoo_credentials, response_model=dict)
 async def delete_odoo_credentials(
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """Delete user's Odoo credentials"""
     try:
         # Get user from database
-        stmt = select(UserSchema).where(UserSchema.id == current_user.id)
+        stmt = select(User).where(User.id == current_user.id)
         result = await db.execute(stmt)
         user = result.scalar_one_or_none()
 
@@ -176,7 +176,7 @@ async def delete_odoo_credentials(
 @router.post(Route.odoo_credentials_test, response_model=dict)
 async def test_odoo_credentials(
     credentials: OdooUserCredentials,
-    current_user: UserSchema = Depends(get_current_user),
+    current_user: User = Depends(get_current_user),
 ):
     """Test Odoo credentials without saving them"""
     try:

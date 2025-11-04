@@ -6,9 +6,9 @@ from typing import List, Optional, Any
 from sqlalchemy import select, func
 
 # from app.auth.schemas import User as UserSchema
-from app.api.models import SyncResponse
+from app.api.models.models import SyncResponse
 from app.services.base_service import BaseService
-from app.inventory.schemas import CategorySchema
+from app.inventory.schemas.schemas import CategorySchema
 
 
 class CategoryService(BaseService):

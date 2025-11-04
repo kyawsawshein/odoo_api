@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     APP_NAME: str = "Odoo FastAPI Integration"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
+    APP_USER: str
+    APP_PASSWORD: str
 
     # Database Configuration
     DATABASE_URL: str = Field(
@@ -46,9 +48,14 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 60
 
     # CORS
-    ALLOWED_ORIGINS: list = ["http://localhost:3000", "http://localhost:8080"]
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
+    
+    @property
+    def allowed_origins_list(self) -> list:
+        """Convert ALLOWED_ORIGINS string to list"""
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
 
-    model_config = {"env_file": "../.env", "case_sensitive": True}
+    model_config = {"env_file": ".env", "case_sensitive": True}
 
 
 # Global settings instance

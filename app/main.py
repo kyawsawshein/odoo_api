@@ -8,17 +8,17 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.config import settings
 from app.core.database import close_db, init_db
 from app.api import router as api_router
-from app.auth import router as auth_router
+from app.auth.api.v1 import router as auth_router
 from app.auth.profile_router import router as profile_router
-from app.graphql import router as graphql_router
-from app.project import router as project_router
-from app.project.frontend_router import router as frontend_project_router
-from app.contact import router as contact_router
-from app.product import router as product_router
-from app.inventory import router as inventory_router
-from app.purchase import router as purchase_router
-from app.sale import router as sale_router
-from app.account import router as account_router
+from app.graphql.api.router import router as graphql_router
+from app.project.api.v1 import router as frontend_project_router
+# from app.project.optimized_router import router as optimized_project_router
+# from app.contact import router as contact_router
+# from app.product import router as product_router
+# from app.inventory import router as inventory_router
+# from app.purchase import router as purchase_router
+# from app.sale import router as sale_router
+# from app.account import router as account_router
 
 
 def create_app() -> FastAPI:
@@ -34,7 +34,7 @@ def create_app() -> FastAPI:
     # Add middleware
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=settings.ALLOWED_ORIGINS,
+        allow_origins=settings.allowed_origins_list,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
@@ -50,15 +50,16 @@ def create_app() -> FastAPI:
     app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
     app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
     app.include_router(api_router, prefix=api_prefix, tags=["api"])
-    app.include_router(project_router, prefix=api_prefix)
+    # app.include_router(project_router, prefix=api_prefix)
     app.include_router(frontend_project_router, prefix=api_prefix)
-    app.include_router(contact_router, prefix=api_prefix)
-    app.include_router(product_router, prefix=api_prefix)
-    app.include_router(inventory_router, prefix=api_prefix)
-    app.include_router(purchase_router, prefix=api_prefix)
-    app.include_router(sale_router, prefix=api_prefix)
-    app.include_router(account_router, prefix=api_prefix)
-    app.include_router(graphql_router, prefix="/graphql", tags=["graphql"])
+    # app.include_router(optimized_project_router, prefix=api_prefix)
+    # app.include_router(contact_router, prefix=api_prefix)
+    # app.include_router(product_router, prefix=api_prefix)
+    # app.include_router(inventory_router, prefix=api_prefix)
+    # app.include_router(purchase_router, prefix=api_prefix)
+    # app.include_router(sale_router, prefix=api_prefix)
+    # app.include_router(account_router, prefix=api_prefix)
+    # app.include_router(graphql_router, prefix="/graphql", tags=["graphql"])
 
     # Startup and shutdown events
     @app.on_event("startup")

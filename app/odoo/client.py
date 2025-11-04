@@ -213,13 +213,14 @@ class OdooClient:
         """Read multiple records by IDs"""
         if fields is None:
             fields = ["id", "name"]
-
         return await self.execute_kw(
             model, "read", [record_ids], {"fields": fields}
         )
 
     async def create_record(self, model: str, values: Dict) -> int:
         """Create a new record in any model"""
+        for value in values:
+            print(type(value))
         return await self.execute_kw(model, "create", [values])
 
     async def update_record(self, model: str, record_id: int, values: Dict) -> bool:

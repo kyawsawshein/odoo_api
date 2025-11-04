@@ -6,8 +6,8 @@ from typing import List, Optional, Any
 from sqlalchemy import select
 
 # from app.auth.schemas import User as UserSchema
-from app.api.models import SyncResponse
-from app.inventory.schemas import Inventory as InventorySchema
+from app.api.models.models import SyncResponse
+from app.inventory.schemas.schemas import Inventory as InventorySchema
 from app.inventory.services.inventory import Inventory
 
 
