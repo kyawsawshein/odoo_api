@@ -24,6 +24,7 @@ from app.auth.utils import (
 )
 from app.config import settings
 from app.core.database import get_db
+from app.auth.auth import validate_token
 from app.odoo.client import OdooClient
 from app.auth.api.route_name import Route
 

@@ -11,6 +11,8 @@ from app.api.models.models import SyncResponse
 from app.auth.api.v1 import get_current_user
 from app.auth.models.models import User
 from app.core.database import get_db
+from app.auth.auth import validate_token
+from app.dependency import db, odoo
 from app.project.api.route_name import Route
 from app.project.controllers.controller import ProjectController
 from app.project.models.model import (
@@ -26,7 +28,12 @@ from app.project.services.projeect_service import ProjectService
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/frontend/projects", tags=["Frontend Projects"])
+
+router = APIRouter(
+    prefix="/frontend/projects",
+    tags=["Frontend Projects"],
+    dependencies=[Depends(validate_token)],
+)
 
 
 def check_authenticate(func):

@@ -7,6 +7,10 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.config import settings
 from app.core.database import close_db, init_db
+from app import dependency
+from app.core.asyncpg_connect import ConfigureAsyncpg
+from app.dependency import OdooAuthRequirements, ConfigureOdoo
+
 from app.api import router as api_router
 from app.auth.api.v1 import router as auth_router
 from app.auth.profile_router import router as profile_router
@@ -45,32 +49,18 @@ def create_app() -> FastAPI:
         allowed_hosts=["*"] if settings.DEBUG else ["localhost", "127.0.0.1"],
     )
 
-    api_prefix = "/api/v1"
-    # Include routers
-    app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
-    app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
-    app.include_router(api_router, prefix=api_prefix, tags=["api"])
-    # app.include_router(project_router, prefix=api_prefix)
-    app.include_router(frontend_project_router, prefix=api_prefix)
-    # app.include_router(optimized_project_router, prefix=api_prefix)
-    # app.include_router(contact_router, prefix=api_prefix)
-    # app.include_router(product_router, prefix=api_prefix)
-    # app.include_router(inventory_router, prefix=api_prefix)
-    # app.include_router(purchase_router, prefix=api_prefix)
-    # app.include_router(sale_router, prefix=api_prefix)
-    # app.include_router(account_router, prefix=api_prefix)
-    # app.include_router(graphql_router, prefix="/graphql", tags=["graphql"])
-
     # Startup and shutdown events
     @app.on_event("startup")
     async def startup_event():
-        await init_db()
+        # await init_db()
         # Initialize other services like Redis, Kafka connections
+        pass
 
     @app.on_event("shutdown")
     async def shutdown_event():
-        await close_db()
+        # await close_db()
         # Close other connections
+        pass
 
     # Health check endpoint
     @app.get("/health", tags=["health"])
@@ -96,6 +86,40 @@ def create_app() -> FastAPI:
 
 # Create application instance
 app = create_app()
+dependency.db = ConfigureAsyncpg(
+    app,
+    settings.DATABASE_URI,
+    db_code=settings.POSTGRES_CODE,
+    **settings.POSTGRES_CONN_OPTION
+)
+odoo_auth_requirements = OdooAuthRequirements(
+    url=settings.ODOO_URL,
+    database=settings.POSTGRES_DB,
+    user=settings.ODOO_USER,
+    password=settings.ODOO_PASSWORD,
+)
+
+dependency.odoo = ConfigureOdoo(
+    app, odoo_auth=odoo_auth_requirements, is_write_enable=settings.ODOO_WRITE_ENABLE
+)
+
+api_prefix = "/api/v1"
+# Include routers
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
+app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
+app.include_router(api_router, prefix=api_prefix, tags=["api"])
+# app.include_router(project_router, prefix=api_prefix)
+app.include_router(frontend_project_router, prefix=api_prefix)
+# app.include_router(optimized_project_router, prefix=api_prefix)
+# app.include_router(contact_router, prefix=api_prefix)
+# app.include_router(product_router, prefix=api_prefix)
+# app.include_router(inventory_router, prefix=api_prefix)
+# app.include_router(purchase_router, prefix=api_prefix)
+# app.include_router(sale_router, prefix=api_prefix)
+# app.include_router(account_router, prefix=api_prefix)
+# app.include_router(graphql_router, prefix="/graphql", tags=["graphql"])
+
+
 
 if __name__ == "__main__":
     uvicorn.run(

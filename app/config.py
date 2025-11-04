@@ -1,9 +1,9 @@
 """Configuration management for the Odoo FastAPI integration"""
 
-# from typing import Optional
+from typing import Optional
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, PostgresDsn
 
 
 class Settings(BaseSettings):
@@ -16,11 +16,32 @@ class Settings(BaseSettings):
     APP_USER: str
     APP_PASSWORD: str
 
+    API_KEY: str
+    API_KEY_NAME: str
+    COOKIE_DOMAIN: str
+    API_USER: str
+    API_PASSWORD: str
+
+    API_JWT_ISSUER: str
+    API_JWT_AUDIENCES: str
+    API_JWT_ALGORITHM: str
+    API_JWT_TOKEN_DURATION: int
+
     # Database Configuration
     DATABASE_URL: str = Field(
         default="postgresql+asyncpg://odoo:admin@localhost:5432/odoo_api",
         env="DATABASE_URL",
     )
+
+    RW_POSTGRES_CODE: Optional[str] = "rw_odoo_db"
+    RW_POSTGRES_SERVER: str
+    RW_POSTGRES_USER: str
+    RW_POSTGRES_PASSWORD: str
+    RW_POSTGRES_DB: str
+    RW_POSTGRES_PORT: str
+    RW_POSTGRES_CONN_OPTION: dict
+    RW_DATABASE_URI: Optional[PostgresDsn] = None
+
 
     # Redis Configuration
     REDIS_URL: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
@@ -28,8 +49,19 @@ class Settings(BaseSettings):
     # Odoo Configuration
     ODOO_URL: str = Field(default="http://localhost:8090", env="ODOO_URL")
     ODOO_DATABASE: str = Field(default="odoo", env="ODOO_DATABASE")
-    ODOO_USERNAME: str = Field(default="admin", env="ODOO_USERNAME")
+    ODOO_USER: str = Field(default="admin", env="ODOO_USERNAME")
     ODOO_PASSWORD: str = Field(default="admin", env="ODOO_PASSWORD")
+    ODOO_WRITE_ENABLE: bool = False
+    ODOO_API_HEADER: str
+    ODOO_API_KEY: str
+    BILLING_ENDPOINT: str
+    BILLING_CHANNEL: str = "billing"
+    IS_RPC_BILLING: bool = True
+
+    ODOO_JWT_AUTHZ_HOST: str
+    ODOO_JWT_AUTHZ_LOGIN_EP: str
+    ODOO_JWT_AUTHZ_CALL_EP: str
+    ODOO_JWT_AUTHZ_TIMEOUT: int
 
     # Kafka Configuration
     KAFKA_BOOTSTRAP_SERVERS: str = Field(
