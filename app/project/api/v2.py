@@ -2,10 +2,9 @@ from typing import List, cast
 import logging
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 
-from odoo.dependency import db
-from odoo.dependency import odoo
+from app.dependency import odoo
 from app.auth.auth import validate_token
-from odoo.core.config import settings as cfg
+from app.config import settings
 
 from app.project.schemas.project import ProjectList
 
@@ -17,10 +16,10 @@ from app.project.controllers.project_controller import ProjectController
 
 from app.project.api.route_name import Route
 
-PREFIX = "/v1/erp_mobile"
-TAG_NAME = "ERP Mobile"
+PREFIX = "/v2/projects"
+TAG_NAME = "Projects"
 
-mobile_router = APIRouter(
+router = APIRouter(
     prefix=PREFIX, tags=[TAG_NAME], dependencies=[Depends(validate_token)]
 )
 
@@ -36,17 +35,17 @@ async def get_authz_token(request: Request) -> str:
 
 
 # Customer
-@mobile_router.get(
+@router.get(
     Route.project,
     response_model=List[ProjectList],
     summary="Customer List",
     description="Use this function to request customer list in ERP.",
 )
-async def get_customers(
+async def get_projects(
     login: str, session: str, token: str = Depends(get_authz_token)
 ):
-    return await ProjectController.get_cust_from_cache_first(
-        login=login, session=session, token=token, limit=cfg.ERP_MOBILE_CUSTOMERS_LIMIT
+    return await ProjectController.get_projects(
+        login=login, session=session, token=token, limit=100
     )
 
 

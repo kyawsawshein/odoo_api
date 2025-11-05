@@ -70,6 +70,7 @@ class ProjectService(BaseService):
     ) -> List[ProjectUser]:
         """Get projects with optional search"""
         odoo_client = await self._get_odoo_client()
+        print("Odoo client ", odoo_client)
         try:
             # Search projects in Odoo
             domain = []

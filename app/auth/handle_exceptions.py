@@ -2,7 +2,7 @@ from typing import Callable, Coroutine, Any
 
 from fastapi import HTTPException, status
 
-from odoo.core.default_responses import UnauthorizeCode, unauthorized_response
+# from odoo.core.default_responses import UnauthorizeCode, unauthorized_response
 
 from app.auth.authz_exception import (
     MissingCreds,
@@ -19,10 +19,10 @@ def handle_odoo_exceptions(func: Callable[..., Coroutine[Any, Any, Any]]):
     async def wrapper(*args, **kwargs):
         try:
             return await func(*args, **kwargs)
-        except MissingCreds as cred_err:
-            raise unauthorized_response(
-                code=UnauthorizeCode.FAILED_AUTH, mesg=str(cred_err)
-            ) from cred_err
+        # except MissingCreds as cred_err:
+        #     raise unauthorized_response(
+        #         code=UnauthorizeCode.FAILED_AUTH, mesg=str(cred_err)
+        #     ) from cred_err
         except (TokenExpiredError, InvalidToken, InvalidCreds) as expired_err:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED, detail=str(expired_err)

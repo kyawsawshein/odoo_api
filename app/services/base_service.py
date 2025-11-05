@@ -1,7 +1,6 @@
 """Base service class with common functionality"""
 
 from typing import List, Optional, Any
-from sqlalchemy.ext.asyncio import AsyncSession
 
 import asyncio
 import structlog
@@ -19,33 +18,29 @@ logger = structlog.get_logger()
 class BaseService:
     """Base service class with common functionality"""
 
-    def __init__(self, db: AsyncSession, current_user: User):
+    def __init__(self, current_user: User, db = None):
         self.db = db
         self.current_user = current_user
         self.odoo_pool = OdooClientPool()
         self.logger = logger.bind(
-            service=self.__class__.__name__, user_id=current_user.id
-        )
+            service=self.__class__.__name__)
 
     async def _get_odoo_client(self) -> OdooClientPool:
         """Get Odoo client from pool using user session credentials"""
         # Get Odoo credentials from user session
-        if not self.current_user.odoo_url or not self.current_user.odoo_database:
-            raise ValueError("User has no Odoo credentials configured")
-
+        print("get odoo client ", self.current_user)
         if not self.current_user.odoo_username or not self.current_user.odoo_password:
             raise ValueError("User has incomplete Odoo credentials")
 
         self.logger.info(
             "Getting Odoo client for user",
-            user_id=self.current_user.id,
             odoo_url=self.current_user.odoo_url,
             odoo_database=self.current_user.odoo_database,
         )
-
+        print("Odoo url ", self.current_user.odoo_url)
         return await self.odoo_pool.get_client(
-            url=self.current_user.odoo_url,
-            db=self.current_user.odoo_database,
+            url=settings.ODOO_URL,
+            db=settings.ODOO_DATABASE,
             username=self.current_user.odoo_username,
             password=self.current_user.odoo_password,
         )

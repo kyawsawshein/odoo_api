@@ -76,4 +76,4 @@ class OdooJWTLoginCredentials(BaseModel):
 
     login: str
     password: str
-    db: str
+    # db: str

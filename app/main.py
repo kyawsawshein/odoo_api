@@ -14,7 +14,7 @@ from app.dependency import OdooAuthRequirements, ConfigureOdoo
 from app.api import router as api_router
 from app.auth.api.v1 import router as auth_router
 from app.auth.profile_router import router as profile_router
-from app.graphql.api.router import router as graphql_router
+# from app.graphql.api.router import router as graphql_router
 from app.project.api.v1 import router as frontend_project_router
 # from app.project.optimized_router import router as optimized_project_router
 # from app.contact import router as contact_router
@@ -88,20 +88,20 @@ def create_app() -> FastAPI:
 app = create_app()
 dependency.db = ConfigureAsyncpg(
     app,
-    settings.DATABASE_URI,
+    settings.asyncpg_dsn,
     db_code=settings.POSTGRES_CODE,
-    **settings.POSTGRES_CONN_OPTION
+    # **settings.POSTGRES_CONN_OPTION
 )
-odoo_auth_requirements = OdooAuthRequirements(
-    url=settings.ODOO_URL,
-    database=settings.POSTGRES_DB,
-    user=settings.ODOO_USER,
-    password=settings.ODOO_PASSWORD,
-)
+# odoo_auth_requirements = OdooAuthRequirements(
+#     url=settings.ODOO_URL,
+#     database=settings.POSTGRES_DB,
+#     user=settings.ODOO_USER,
+#     password=settings.ODOO_PASSWORD,
+# )
 
-dependency.odoo = ConfigureOdoo(
-    app, odoo_auth=odoo_auth_requirements, is_write_enable=settings.ODOO_WRITE_ENABLE
-)
+# dependency.odoo = ConfigureOdoo(
+#     app, odoo_auth=odoo_auth_requirements, is_write_enable=settings.ODOO_WRITE_ENABLE
+# )
 
 api_prefix = "/api/v1"
 # Include routers
@@ -110,6 +110,9 @@ app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
 app.include_router(api_router, prefix=api_prefix, tags=["api"])
 # app.include_router(project_router, prefix=api_prefix)
 app.include_router(frontend_project_router, prefix=api_prefix)
+
+from app.project.api.v2 import router as project_v2
+app.include_router(project_v2, prefix=api_prefix)
 # app.include_router(optimized_project_router, prefix=api_prefix)
 # app.include_router(contact_router, prefix=api_prefix)
 # app.include_router(product_router, prefix=api_prefix)

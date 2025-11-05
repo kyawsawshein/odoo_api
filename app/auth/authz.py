@@ -2,14 +2,15 @@
 
 from typing import cast, Dict, Any, List, Optional
 from requests import request
+from pydantic import BaseModel
 
 from app.config import settings
-from odoo.erp_mobile.schema.authz_login_payload import Creds, LoginPayload
-from odoo.erp_mobile.schema.odoo_rpc_payload import (
-    RequestPayLoad,
-    Params,
-    PayLoadParams,
-)
+# from app.erp_mobile.schema.authz_login_payload import Creds, LoginPayload
+# from odoo.erp_mobile.schema.odoo_rpc_payload import (
+#     RequestPayLoad,
+#     Params,
+#     PayLoadParams,
+# )
 
 from app.auth.authz_exception import (
     TokenExpiredError,
@@ -38,6 +39,27 @@ class RKey:
     debug = "debug"
     name = "name"
 
+class Creds(BaseModel):
+    login: str
+    password: str
+
+
+class LoginPayload(BaseModel):
+    params: Creds
+
+class PayLoadParams(BaseModel):
+    domain: List
+    fields: List
+    limit: int
+
+
+class Params(BaseModel):
+    token: str
+    args: List
+    kwargs: Dict
+
+class RequestPayLoad(BaseModel):
+    params: Params
 
 def _dispatch_token(response: Dict[str, Any]) -> Optional[str]:
     # Odoo always responds with a status code 200, even something is not correct
@@ -66,13 +88,15 @@ def _dispatch_token(response: Dict[str, Any]) -> Optional[str]:
 
 async def get_authz_token(login: str, pwd: str) -> Optional[str]:
     url = f"{settings.ODOO_JWT_AUTHZ_HOST}{settings.ODOO_JWT_AUTHZ_LOGIN_EP}"
+    print("#====== URL ", url, login, pwd)
     response = request(
         POST,
         url,
         headers=HEADERS,
-        data=LoginPayload(params=Creds(login=login, password=pwd)).json(),
+        data=LoginPayload(params=Creds(login=login, password=pwd)).model_dump_json(),
         timeout=settings.ODOO_JWT_AUTHZ_TIMEOUT,
     )
+    print("# response ", response)
     return _dispatch_token(response=response.json())
 
 

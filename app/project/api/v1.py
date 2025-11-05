@@ -9,10 +9,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.models.models import SyncResponse
 from app.auth.api.v1 import get_current_user
+from app.auth.auth import validate_token
 from app.auth.models.models import User
 from app.core.database import get_db
-from app.auth.auth import validate_token
-from app.dependency import db, odoo
+from app.dependency import odoo
 from app.project.api.route_name import Route
 from app.project.controllers.controller import ProjectController
 from app.project.models.model import (
@@ -32,7 +32,6 @@ logger = structlog.get_logger()
 router = APIRouter(
     prefix="/frontend/projects",
     tags=["Frontend Projects"],
-    dependencies=[Depends(validate_token)],
 )
 
 
@@ -53,17 +52,28 @@ def check_authenticate(func):
     return wrapper
 
 
+async def get_db_connection():
+    """Dependency to get database connection at runtime"""
+    from app.dependency import db
+
+    if db is None:
+        raise RuntimeError("Database not configured")
+    async with db.connection() as connection:
+        yield connection
+
+
 @router.post(Route.project, response_model=SyncResponse)
 @check_authenticate
 async def create_project_from_frontend(
     project: ProjectCreate,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db_connection=Depends(get_db_connection),
 ):
     """Create a new project from frontend and sync with Odoo"""
-    return await ProjectController(current_user=current_user, db=db).create_project(
-        project
+    controller = ProjectController(
+        current_user=current_user, db_connection=db_connection
     )
+    return await controller.create_project(project)
 
 
 @router.post(Route.project_task, response_model=SyncResponse)
@@ -105,9 +115,7 @@ async def create_task_timesheet_from_frontend(
     db: AsyncSession = Depends(get_db),
 ):
     """Create timesheet for task from frontend and sync with Odoo"""
-    return await ProjectController(current_user=current_user, db=db).create_timesheet(
-        task_id, timesheet
-    )
+    return await ProjectService(current_user, db).create_timesheet(task_id, timesheet)
 
 
 @router.post(Route.project_file_upload, response_model=FileUploadResponse)
@@ -119,9 +127,7 @@ async def upload_project_file_from_frontend(
     db: AsyncSession = Depends(get_db),
 ):
     """Upload file to project from frontend and sync with Odoo"""
-    return await ProjectController(
-        current_user=current_user, db=db
-    ).initiate_file_upload(project_id, file)
+    return await ProjectService(current_user, db).initiate_file_upload(project_id, file)
 
 
 @router.get(Route.project_task, response_model=List[dict])
@@ -134,9 +140,7 @@ async def get_project_tasks_from_frontend(
     db: AsyncSession = Depends(get_db),
 ):
     """Get all tasks for a project from frontend"""
-    return await ProjectController(current_user=current_user, db=db).get_project(
-        project_id, skip, limit
-    )
+    return await ProjectService(current_user, db).get_project(project_id, skip, limit)
 
 
 @router.get(Route.task, response_model=dict)
@@ -148,9 +152,7 @@ async def get_project_task_from_frontend(
 ):
     """Get specific task details from frontend"""
 
-    return await ProjectController(current_user=current_user, db=db).get_task_details(
-        task_id
-    )
+    return await ProjectService(current_user, db).get_task_details(task_id)
 
 
 @router.put(Route.project_id, response_model=SyncResponse)
@@ -162,7 +164,7 @@ async def update_project_from_frontend(
     db: AsyncSession = Depends(get_db),
 ):
     """Update project from frontend and sync with Odoo"""
-    service = ProjectService(db, current_user)
+    service = ProjectService(current_user, db)
     try:
         result = await service.update_project(
             project_id, project_update.dict(exclude_unset=True)
@@ -185,10 +187,12 @@ async def get_all_projects_from_frontend(
     db: AsyncSession = Depends(get_db),
 ):
     """Get all projects for frontend with full details"""
-    service = ProjectService(db, current_user)
+    service = ProjectService(current_user, db)
     try:
         # Get project list first
+        print("#===== Service : ", service, current_user)
         project_list = await service.get_projects(skip=skip, limit=limit, search=search)
+        print("#+++++ project list ", project_list)
         # Get full details for each project
         full_projects = []
         for project in project_list:
@@ -213,7 +217,7 @@ async def get_project_dashboard(
     db: AsyncSession = Depends(get_db),
 ):
     """Get project dashboard data"""
-    service = ProjectService(db, current_user)
+    service = ProjectService(current_user, db)
     try:
         # Get project list for dashboard
         project_list = await service.get_projects(skip=skip, limit=limit, search=search)
@@ -241,7 +245,7 @@ async def get_project_tasks_singular(
     db: AsyncSession = Depends(get_db),
 ):
     """Get all tasks for a project from frontend (singular endpoint)"""
-    service = ProjectService(db, current_user)
+    service = ProjectService(current_user, db)
     try:
         project = await service.get_project(project_id)
         if not project:

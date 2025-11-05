@@ -7,8 +7,10 @@ import requests
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth.api.route_name import Route
+from app.auth.auth import validate_token
+from app.auth.authz import get_authz_token
 from app.auth.models.models import (
     OdooJWTLoginCredentials,
     OdooUserCredentials,
@@ -24,17 +26,13 @@ from app.auth.utils import (
 )
 from app.config import settings
 from app.core.database import get_db
-from app.auth.auth import validate_token
 from app.odoo.client import OdooClient
-from app.auth.api.route_name import Route
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
-) -> User:
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     """Get current authenticated user using .env credentials"""
     token_data = verify_token(token)
 
@@ -59,9 +57,7 @@ async def get_current_user(
     return user
 
 
-async def get_current_user_optional(
-    request: Request, db: AsyncSession = Depends(get_db)
-) -> Optional[User]:
+async def get_current_user_optional(request: Request) -> Optional[User]:
     """Get current user if authenticated, otherwise return None"""
     try:
         # Extract token from Authorization header
@@ -82,10 +78,9 @@ async def get_current_user_optional(
         # If any error occurs (invalid token, expired, etc.), return None
         return None
 
+
 @router.post(Route.token, response_model=Token)
-async def login_for_access_token(
-    form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
-):
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login and get access token using .env credentials"""
     # Verify username matches APP_USER from .env
     if form_data.username != settings.APP_USER:
@@ -173,31 +168,13 @@ async def read_users_me(current_user: User = Depends(get_current_user)):
 async def odoo_jwt_login(
     credentials: OdooJWTLoginCredentials,
     response: Response,
-    current_user: User = Depends(get_current_user),
 ):
     """Authenticate with Odoo JWT endpoint and store token in cookie"""
     try:
-        # Call Odoo JWT login endpoint
-        jwt_url = f"{settings.ODOO_URL}/jwt/login"
-        payload = {
-            "login": credentials.login,
-            "password": credentials.password,
-            "db": credentials.db
-        }
-        print("URL : ", jwt_url, "Payload : ", payload)
-        # Make request to Odoo JWT endpoint - try both json and data formats
-        headers = {'Content-Type': 'application/json'}
-        jwt_response = requests.post(jwt_url, json=payload, headers=headers)
-        print("jwt response status: ", jwt_response.status_code)
-        print("jwt response text: ", jwt_response.text)
-        if jwt_response.status_code != 200:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid Odoo JWT credentials",
-            )
-
         # Extract JWT token from response
-        jwt_data = jwt_response.json()
+        jwt_data = await get_authz_token(
+            login=credentials.login, pwd=credentials.password
+        )
         jwt_token = jwt_data.get("token")
 
         if not jwt_token:
@@ -215,7 +192,6 @@ async def odoo_jwt_login(
             samesite="lax",
             max_age=24 * 60 * 60,  # 24 hours
         )
-
         return {
             "message": "Odoo JWT authentication successful",
             "login": credentials.login,

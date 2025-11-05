@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.sql import func
 
 # Base class for models
-from .database import Base
+
 from enum import Enum
 from pydantic import BaseModel
 from fastapi import status
@@ -22,21 +22,6 @@ from .exceptions import CustomHTTPException
 class Message(BaseModel):
     detail: str
 
-
-class BaseSchema(Base):
-    __abstract__ = True  # ✅ prevent table creation
-
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-
-class OdooBaseSchema(BaseSchema):
-    __abstract__ = True  # ✅ prevent table creation
-
-    create_date = Column(String(50), server_default=func.now())
-    write_date = Column(String(50), server_default=func.now())
 
 class UnauthorizeCode(Enum):
     INVALID_SIG = 1

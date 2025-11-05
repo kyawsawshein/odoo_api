@@ -4,12 +4,11 @@ from typing import Any, Dict, List, Optional
 
 import structlog
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.models.models import SyncResponse
 from app.auth.api.v1 import get_current_user
 from app.auth.models.models import User
-from app.core.database import get_db
+# Database dependency is now passed as parameter, not imported at module level
 from app.project.api.route_name import Route
 from app.project.models.model import (
     CreateProjectTask,
@@ -27,10 +26,12 @@ logger = structlog.get_logger()
 
 
 class ProjectController:
-    def __init__(self, current_user: User, db: AsyncSession):
-        self.db = db
+    def __init__(self, current_user: User, db_connection=None):
+        self.db = db_connection
         self.current_user = current_user
-        self.service = ProjectService(self.db, self.current_user)
+        # ProjectService now accepts db as optional parameter
+        self.service = ProjectService(self.current_user, self.db) if self.current_user else None
+        self.logger = logger
 
     async def create_project(
         self,

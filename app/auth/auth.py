@@ -35,6 +35,7 @@ class TokenClaims(BaseModel):
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 async def validate_token(request: Request, token: str= Depends(oauth2_scheme)):
+    print("#======= token : ", token)
     if token == settings.API_KEY:
         return token
     claim = decode_jwt_token(token=token)
@@ -48,7 +49,7 @@ def decode_jwt_token(token: str, **options) -> TokenClaims:
                 jwt        = token,
                 key        = settings.API_KEY,
                 algorithms = settings.API_JWT_ALGORITHM,
-                audience   = settings.audience_list,
+                audience   = settings.API_JWT_AUDIENCES,
                 issuer     = settings.API_JWT_ISSUER,
                 options=options
             ))
@@ -65,7 +66,7 @@ def decode_jwt_token(token: str, **options) -> TokenClaims:
     except pydantic.ValidationError as err:
         raise unauthorized_response(code = UnauthorizeCode.INVALID_CLM, mesg = "Authentication Required") from err
 
-async def generate_jwt_token(subject: str, issuer: str = settings.API_JWT_ISSUER, audience: str = settings.audience_list[0]) -> Token:
+async def generate_jwt_token(subject: str, issuer: str = settings.API_JWT_ISSUER, audience: str = settings.API_JWT_AUDIENCES) -> Token:
     now_time = datetime.now(tz=timezone.utc).timestamp()
     claim = TokenClaims(
         iss = issuer,

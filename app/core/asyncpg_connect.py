@@ -48,8 +48,9 @@ class ConfigureAsyncpg:
             setattr(self.app.state, self._db_code, self._pool)
             return
         pool = await asyncpg.create_pool(dsn=self.dsn, **self.con_opts)
-        async with pool.acquire() as db:
-            await self.init_db(db)
+        if self.init_db and callable(self.init_db):
+            async with pool.acquire() as db:
+                await self.init_db(db)
         setattr(self.app.state, self._db_code, pool)
 
     async def on_disconnect(self):
