@@ -2,8 +2,6 @@
 
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 import structlog
 
 from app.auth.api.v1 import get_current_user
@@ -30,7 +28,7 @@ router = APIRouter(prefix="/profile", tags=["profile"])
 @router.get(Route.odoo_credentials, response_model=Optional[OdooUserCredentials])
 async def get_odoo_credentials(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
 ):
     """Get user's Odoo credentials"""
     try:
@@ -67,7 +65,7 @@ async def get_odoo_credentials(
 async def set_odoo_credentials(
     credentials: OdooUserCredentials,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
 ):
     """Set user's Odoo credentials and test connection"""
     try:
@@ -137,7 +135,7 @@ async def set_odoo_credentials(
 @router.delete(Route.odoo_credentials, response_model=dict)
 async def delete_odoo_credentials(
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db = Depends(get_db),
 ):
     """Delete user's Odoo credentials"""
     try:

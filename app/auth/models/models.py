@@ -11,7 +11,7 @@ class Token(BaseModel):
 
     access_token: str
     token_type: str
-    expires_in: int
+    # expires_in: int
 
 
 class TokenData(BaseModel):
@@ -20,6 +20,10 @@ class TokenData(BaseModel):
     username: Optional[str] = None
     user_id: Optional[int] = None
     scopes: list[str] = []
+    odoo_username: Optional[str] = None
+    odoo_password: Optional[str] = None
+    odoo_database: Optional[str] = None
+    roles: list[str] = []
 
 
 class UserBase(BaseModel):
@@ -52,6 +56,7 @@ class User(UserBase):
     odoo_database: str
     odoo_username: str
     odoo_password: str
+    roles: list[str] = []
 
     class Config:
         from_attributes = True

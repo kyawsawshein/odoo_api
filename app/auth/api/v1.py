@@ -2,14 +2,14 @@
 
 from datetime import timedelta
 from typing import Optional
-
+import structlog
 import requests
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-from sqlalchemy import select
+
 
 from app.auth.api.route_name import Route
-from app.auth.auth import validate_token
+from app.auth.auth import validate_token, generate_jwt_token
 from app.auth.authz import get_authz_token
 from app.auth.models.models import (
     OdooJWTLoginCredentials,
@@ -27,57 +27,67 @@ from app.auth.utils import (
 from app.config import settings
 from app.core.database import get_db
 from app.odoo.client import OdooClient
-
+logger = structlog.get_logger()
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
-    """Get current authenticated user using .env credentials"""
-    token_data = verify_token(token)
-
-    # Verify that the username from token matches APP_USER from .env
-    if token_data.username != settings.APP_USER:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user credentials"
-        )
-    # Create a UserSchema object using credentials from .env
-    user = User(
-        id=token_data.user_id,
-        username=settings.APP_USER,
-        email=f"{settings.APP_USER}@example.com",
-        full_name=settings.APP_USER,
-        is_active=True,
-        odoo_url=settings.ODOO_URL,
-        odoo_database=settings.ODOO_DATABASE,
-        odoo_username=settings.ODOO_USERNAME,
-        odoo_password=settings.ODOO_PASSWORD,
-    )
-
-    return user
-
-
-async def get_current_user_optional(request: Request) -> Optional[User]:
-    """Get current user if authenticated, otherwise return None"""
+    """
+    Dependency to get the current authenticated user.
+    Decodes the JWT and populates a User object with Odoo credentials
+    stored within the token's claims.
+    """
     try:
-        # Extract token from Authorization header
-        auth_header = request.headers.get("Authorization")
-        if not auth_header or not auth_header.startswith("Bearer "):
-            return None
-
-        token = auth_header.replace("Bearer ", "")
         token_data = verify_token(token)
+        logger.info("Token verified for user", username=token_data.username)
+        
+        # The token payload must contain the necessary Odoo credentials.
+        if not all([token_data.odoo_username, token_data.odoo_password, token_data.odoo_database]):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incomplete Odoo credentials in token",
+            )
 
-        # Query user from database
-        user = get_current_user()
-        if user is None or not user.is_active:
-            return None
-
+        # Create a User object representing the authenticated user and their Odoo identity.
+        user = User(
+            id=token_data.user_id,
+            username=token_data.username,
+            email=f"{token_data.username}@example.com", # Or get from token if available
+            full_name=token_data.username,
+            is_active=True,
+            odoo_url=settings.ODOO_URL, # The Odoo URL is from server settings
+            odoo_database=token_data.odoo_database,
+            odoo_username=token_data.odoo_username,
+            odoo_password=token_data.odoo_password,
+            roles=token_data.roles,
+        )
         return user
-    except Exception:
-        # If any error occurs (invalid token, expired, etc.), return None
-        return None
+    except HTTPException as e:
+        logger.error("Authentication error in get_current_user", detail=e.detail)
+        raise e
 
+
+# async def get_current_user_optional(request: Request) -> Optional[User]:
+#     """Get current user if authenticated, otherwise return None"""
+#     try:
+#         # Extract token from Authorization header
+#         auth_header = request.headers.get("Authorization")
+#         if not auth_header or not auth_header.startswith("Bearer "):
+#             return None
+
+#         token = auth_header.replace("Bearer ", "")
+#         token_data = verify_token(token)
+
+#         # Query user from database
+#         user = get_current_user()
+#         if user is None or not user.is_active:
+#             return None
+
+#         return user
+#     except Exception:
+#         # If any error occurs (invalid token, expired, etc.), return None
+#         return None
 
 @router.post(Route.token, response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -91,7 +101,14 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
 
     # Verify password matches APP_PASSWORD from .env
-    if not verify_password(form_data.password, settings.APP_PASSWORD):
+    # if not verify_password(form_data.password, settings.APP_PASSWORD):
+    #     raise HTTPException(
+    #         status_code=status.HTTP_401_UNAUTHORIZED,
+    #         detail="Incorrect password",
+    #         headers={"WWW-Authenticate": "Bearer"},
+    #     )
+
+    if form_data.password != settings.APP_PASSWORD:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect password",
@@ -99,17 +116,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
 
     # Create access token
-    access_token_expires = timedelta(minutes=30)
-    access_token = create_access_token(
-        data={"sub": settings.APP_USER, "user_id": 2},
-        expires_delta=access_token_expires,
-    )
-    return Token(
-        access_token=access_token,
-        token_type="bearer",
-        expires_in=access_token_expires.total_seconds(),
-    )
-
+    return await generate_jwt_token(
+            subject=form_data.username, audience=form_data.client_id
+        )
 
 @router.post(Route.odoo_login)
 async def odoo_login(
@@ -119,6 +128,7 @@ async def odoo_login(
     """Authenticate with Odoo and get JWT token"""
     try:
         # Create Odoo client and authenticate
+        logger.info("Attempting Odoo login", username=credentials.odoo_username, db=credentials.odoo_database)
         odoo_client = OdooClient(
             url=settings.ODOO_URL,
             db=credentials.odoo_database,
@@ -126,14 +136,37 @@ async def odoo_login(
             password=credentials.odoo_password,
         )
         uid = await odoo_client.authenticate()
+        
         if not uid:
+            logger.warning("Invalid Odoo credentials provided", username=credentials.odoo_username)
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid Odoo credentials",
             )
+        
+        # Fetch user's groups (roles) from Odoo
+        user_data = await odoo_client.read_record(
+            model="res.users",
+            record_id=uid,
+            fields=["groups_id"],
+        )
+        group_ids = user_data.get("groups_id", [])
+        
+        user_roles = []
+        if group_ids:
+            groups = await odoo_client.read_records(
+                model="res.groups", record_ids=group_ids, fields=["name"]
+            )
+            user_roles = [group["name"] for group in groups]
+
+        logger.info("Odoo authentication successful", uid=uid, roles=user_roles)
         access_token_expires = timedelta(minutes=30)
+        
+        # Create a JWT that includes the Odoo credentials for later use.
         access_token = create_access_token(
-            data={"sub": credentials.odoo_username, "user_id": uid},
+            data={"sub": credentials.odoo_username, "user_id": uid,
+                  "odoo_username": credentials.odoo_username, "odoo_password": credentials.odoo_password, "odoo_database": credentials.odoo_database,
+                  "roles": user_roles},
             expires_delta=access_token_expires,
         )
 

@@ -1,9 +1,10 @@
 import time
 import logging
 from datetime import datetime, timezone
+from typing import List
 import jwt
 from pydantic import BaseModel
-from fastapi import Depends, Request
+from fastapi import Depends, Request, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 import pydantic
 from app.config import settings
@@ -31,6 +32,26 @@ class TokenClaims(BaseModel):
     iat: float
     exp: float
     sub: str
+
+# class RoleChecker:
+#     """
+#     Dependency that checks if the authenticated user has at least one of the required roles.
+#     """
+#     def __init__(self, allowed_roles: List[str]):
+#         self.allowed_roles = allowed_roles
+
+#     def __call__(self, current_user: User = Depends(get_current_user)):
+#         if not self.allowed_roles:
+#             return  # If no roles are required, allow access.
+
+#         user_roles = set(current_user.roles)
+#         if not user_roles.intersection(self.allowed_roles):
+#             _logger.warning(
+#                 "User does not have required roles",
+#                 username=current_user.username,
+#                 required_roles=self.allowed_roles,
+#             )
+#             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not enough permissions")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 

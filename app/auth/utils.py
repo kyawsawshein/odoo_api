@@ -56,12 +56,24 @@ def verify_token(token: str) -> TokenData:
         )
         username: str = payload.get("sub")
         user_id: int = payload.get("user_id")
+        odoo_username: str = payload.get("odoo_username")
+        odoo_password: str = payload.get("odoo_password")
+        odoo_database: str = payload.get("odoo_database")
+        roles: list = payload.get("roles", [])
         scopes: list = payload.get("scopes", [])
 
         if username is None or user_id is None:
             raise credentials_exception
 
-        return TokenData(username=username, user_id=user_id, scopes=scopes)
+        return TokenData(
+            username=username, 
+            user_id=user_id, 
+            scopes=scopes,
+            odoo_username=odoo_username,
+            odoo_password=odoo_password,
+            odoo_database=odoo_database,
+            roles=roles,
+        )
     except JWTError:
         raise credentials_exception
 

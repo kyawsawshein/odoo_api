@@ -7,9 +7,7 @@ from app.auth.api.v1 import get_current_user
 from app.auth.models.models import User
 
 from app.cache.redis_client import redis_client
-# from app.database import get_db
 from fastapi import APIRouter, Depends, HTTPException, status
-# from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

@@ -5,12 +5,12 @@ from requests import request
 from pydantic import BaseModel
 
 from app.config import settings
-# from app.erp_mobile.schema.authz_login_payload import Creds, LoginPayload
-# from odoo.erp_mobile.schema.odoo_rpc_payload import (
-#     RequestPayLoad,
-#     Params,
-#     PayLoadParams,
-# )
+from app.erp_mobile.schema.authz_login_payload import Creds, LoginPayload
+from app.erp_mobile.schema.odoo_rpc_payload import (
+    RequestPayLoad,
+    Params,
+    PayLoadParams,
+)
 
 from app.auth.authz_exception import (
     TokenExpiredError,

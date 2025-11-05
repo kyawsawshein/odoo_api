@@ -95,7 +95,7 @@ dependency.db = ConfigureAsyncpg(
 # odoo_auth_requirements = OdooAuthRequirements(
 #     url=settings.ODOO_URL,
 #     database=settings.POSTGRES_DB,
-#     user=settings.ODOO_USER,
+#     user=settings.ODOO_USERNAME,
 #     password=settings.ODOO_PASSWORD,
 # )
 
