@@ -25,57 +25,36 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    data: TokenData, expires_delta: Optional[timedelta] = None
+) -> str:
     """Create JWT access token"""
-    to_encode = data.copy()
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        data.exp = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
-            minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+        data.exp = datetime.utcnow() + timedelta(
+            minutes=settings.API_JWT_TOKEN_DURATION
         )
-
-    to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
-        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+        data.model_dump(), settings.API_KEY, algorithm=settings.API_JWT_ALGORITHM
     )
     return encoded_jwt
 
 
 def verify_token(token: str) -> TokenData:
     """Verify JWT token and return token data"""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
     try:
-        payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
-        )
-        username: str = payload.get("sub")
-        user_id: int = payload.get("user_id")
-        odoo_username: str = payload.get("odoo_username")
-        odoo_password: str = payload.get("odoo_password")
-        odoo_database: str = payload.get("odoo_database")
-        roles: list = payload.get("roles", [])
-        scopes: list = payload.get("scopes", [])
-
-        if username is None or user_id is None:
-            raise credentials_exception
-
         return TokenData(
-            username=username, 
-            user_id=user_id, 
-            scopes=scopes,
-            odoo_username=odoo_username,
-            odoo_password=odoo_password,
-            odoo_database=odoo_database,
-            roles=roles,
+            **jwt.decode(
+                token, settings.API_KEY, algorithms=[settings.API_JWT_ALGORITHM]
+            )
         )
     except JWTError:
-        raise credentials_exception
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def generate_api_token(name: str, user_id: int, scopes: list) -> str:

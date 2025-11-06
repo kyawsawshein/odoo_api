@@ -28,7 +28,7 @@ class BaseService:
     async def _get_odoo_client(self) -> OdooClientPool:
         """Get Odoo client from pool using user session credentials"""
         # Get Odoo credentials from user session
-        print("get odoo client ", self.current_user)
+        print("#========================= get odoo client ", self.current_user)
         if not self.current_user.odoo_username or not self.current_user.odoo_password:
             raise ValueError("User has incomplete Odoo credentials")
 
@@ -37,7 +37,7 @@ class BaseService:
             odoo_url=self.current_user.odoo_url,
             odoo_database=self.current_user.odoo_database,
         )
-        print("Odoo url ", self.current_user.odoo_url)
+        print("# =============================== Odoo url ", self.current_user.odoo_url)
         return await self.odoo_pool.get_client(
             url=settings.ODOO_URL,
             db=settings.ODOO_DATABASE,

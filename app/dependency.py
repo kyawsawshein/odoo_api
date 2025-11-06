@@ -35,9 +35,7 @@ class ConfigureOdoo:
         self.app = app
         self.uid = None
         self.odoo_auth = odoo_auth
-
-        if is_write_enable:
-            self.app.router.add_event_handler("startup", self._on_startup)
+        self.app.router.add_event_handler("startup", self._on_startup)
 
     async def _on_startup(self):
         common = ServerProxy(f'{self.odoo_auth.url}/xmlrpc/2/common')

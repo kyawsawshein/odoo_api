@@ -24,7 +24,7 @@ class TokenData(BaseModel):
     odoo_password: Optional[str] = None
     odoo_database: Optional[str] = None
     roles: list[str] = []
-
+    exp: Optional[datetime] = None
 
 class UserBase(BaseModel):
     """Base user model"""
@@ -73,7 +73,7 @@ class OdooUserCredentials(BaseModel):
 
     odoo_username: str
     odoo_password: str
-    odoo_database: str
+    # odoo_database: str
 
 
 class OdooJWTLoginCredentials(BaseModel):

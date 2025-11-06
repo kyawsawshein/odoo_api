@@ -23,8 +23,8 @@ services:
     volumes:
       - .:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    # networks:
-    #   - odoo19_odoo19-net
+    networks:
+      - odoo19_odoo19-net
 
   # PostgreSQL Database
   # postgres:
@@ -55,8 +55,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-    # networks:
-    #   - odoo19_odoo19-net
+    networks:
+      - odoo19_odoo19-net
 
   # # Kafka
   # zookeeper:
@@ -110,6 +110,6 @@ volumes:
   # postgres_data:
   redis_data:
 
-# networks:
-#   odoo19_odoo19-net:
-#     external: true
+networks:
+  odoo19_odoo19-net:
+    external: true

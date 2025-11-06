@@ -11,19 +11,6 @@ from app import dependency
 from app.core.asyncpg_connect import ConfigureAsyncpg
 from app.dependency import OdooAuthRequirements, ConfigureOdoo
 
-from app.api import router as api_router
-from app.auth.api.v1 import router as auth_router
-from app.auth.profile_router import router as profile_router
-# from app.graphql.api.router import router as graphql_router
-from app.project.api.v1 import router as frontend_project_router
-# from app.project.optimized_router import router as optimized_project_router
-# from app.contact import router as contact_router
-# from app.product import router as product_router
-# from app.inventory import router as inventory_router
-# from app.purchase import router as purchase_router
-# from app.sale import router as sale_router
-# from app.account import router as account_router
-
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application"""
@@ -92,36 +79,42 @@ dependency.db = ConfigureAsyncpg(
     db_code=settings.POSTGRES_CODE,
     # **settings.POSTGRES_CONN_OPTION
 )
-# odoo_auth_requirements = OdooAuthRequirements(
-#     url=settings.ODOO_URL,
-#     database=settings.POSTGRES_DB,
-#     user=settings.ODOO_USERNAME,
-#     password=settings.ODOO_PASSWORD,
-# )
+odoo_auth_requirements = OdooAuthRequirements(
+    url=settings.ODOO_URL,
+    database=settings.POSTGRES_DB,
+    user=settings.ODOO_USERNAME,
+    password=settings.ODOO_PASSWORD,
+)
 
-# dependency.odoo = ConfigureOdoo(
-#     app, odoo_auth=odoo_auth_requirements, is_write_enable=settings.ODOO_WRITE_ENABLE
-# )
+dependency.odoo = ConfigureOdoo(
+    app, odoo_auth=odoo_auth_requirements,
+)
 
 api_prefix = "/api/v1"
+
+
+
+
+
+
 # Include routers
+from app.auth.api.v1 import router as auth_router
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
-app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
+
+from app.auth.api.v1 import odoo_router
+app.include_router(odoo_router, prefix="/api/v1/odoo", tags=["Odoo"])
+
+from app.api import router as api_router
 app.include_router(api_router, prefix=api_prefix, tags=["api"])
-# app.include_router(project_router, prefix=api_prefix)
+
+from app.auth.profile_router import router as profile_router
+# app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
+
+from app.project.api.v1 import router as frontend_project_router
 app.include_router(frontend_project_router, prefix=api_prefix)
 
-from app.project.api.v2 import router as project_v2
-app.include_router(project_v2, prefix=api_prefix)
-# app.include_router(optimized_project_router, prefix=api_prefix)
-# app.include_router(contact_router, prefix=api_prefix)
-# app.include_router(product_router, prefix=api_prefix)
-# app.include_router(inventory_router, prefix=api_prefix)
-# app.include_router(purchase_router, prefix=api_prefix)
-# app.include_router(sale_router, prefix=api_prefix)
-# app.include_router(account_router, prefix=api_prefix)
-# app.include_router(graphql_router, prefix="/graphql", tags=["graphql"])
-
+from app.projects.api.v1 import router as project
+app.include_router(project, prefix=api_prefix)
 
 
 if __name__ == "__main__":

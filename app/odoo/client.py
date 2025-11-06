@@ -290,6 +290,7 @@ class OdooClientPool:
         key = f"{db}:{username}"
 
         if key not in self.clients:
+            print("#=================== Odoo authenticate ==========================")
             client = OdooClient(url or settings.ODOO_URL, db, username, password)
             await client.authenticate()
             self.clients[key] = client

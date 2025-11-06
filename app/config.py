@@ -13,10 +13,11 @@ class Settings(BaseSettings):
     APP_NAME: str = "Odoo FastAPI Integration"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = False
-    APP_USER: str
-    APP_PASSWORD: str
 
-    API_KEY: str
+    # Authentication
+    API_KEY: str = Field(
+        default="your-secret-key-here-change-in-production", env="SECRET_KEY"
+    )
     API_KEY_NAME: str
     COOKIE_DOMAIN: str
     API_USER: str
@@ -61,9 +62,6 @@ class Settings(BaseSettings):
     # ODOO_WRITE_ENABLE: bool = False
     # ODOO_API_HEADER: str
     ODOO_API_KEY: str
-    # BILLING_ENDPOINT: str
-    # BILLING_CHANNEL: str = "billing"
-    # IS_RPC_BILLING: bool = True
 
     ODOO_JWT_AUTHZ_HOST: str
     ODOO_JWT_AUTHZ_LOGIN_EP: str
@@ -75,13 +73,6 @@ class Settings(BaseSettings):
         default="localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS"
     )
     KAFKA_GROUP_ID: str = Field(default="odoo-api-group", env="KAFKA_GROUP_ID")
-
-    # Authentication
-    SECRET_KEY: str = Field(
-        default="your-secret-key-here-change-in-production", env="SECRET_KEY"
-    )
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # Rate Limiting
     RATE_LIMIT_PER_MINUTE: int = 60
