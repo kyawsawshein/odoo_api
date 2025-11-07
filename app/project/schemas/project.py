@@ -64,18 +64,18 @@ class ProjectTaskSchema(BaseModel):
 class CreateProjectTask(BaseModel):
     name: str
     description: Optional[str] = None
+    project_id: Optional[int] = None
     progress: int = Field(..., ge=0, le=100)  # 0–100
-    user_ids: List[ProjectUser] = []
-    tag_ids: List[str] = []
-    assignees: int = 0
+    # user_ids: List[ProjectUser] = None
+    # tag_ids: List[str] = None
     # blocked_by_task_id: Optional[int] = None  # ID of blocking task (null if none)
-    checklist: List[ChecklistItem] = []
+    # checklist: List[ChecklistItem] = None
     # planned_start: Optional[str] = None
     # planned_stop: Optional[str] = None
     # real_duration_seconds: int = 0  # e.g., 7200 = 2 hrs
     # timer_running: bool = False
-    subtasks: List["ProjectTaskSchema"] = []  # recursive
-    files: List[ProjectFile] = []  # linked documents
+    # subtasks: List["ProjectTaskSchema"] = None # recursive
+    # files: List[ProjectFile] = None  # linked documents
 
 
 # Project (top-level)

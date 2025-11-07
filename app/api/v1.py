@@ -3,19 +3,26 @@
 # from typing import List, Optional
 
 import structlog
-from app.auth.api.v1 import get_current_user
+from app.auth.api.v1 import get_current_user, validate_token
 from app.auth.models.models import User
 
 from app.cache.redis_client import redis_client
 from fastapi import APIRouter, Depends, HTTPException, status
 
-logger = structlog.get_logger()
+PREFIX = "/cache"
+TAG_NAME = "Cache"
 
-router = APIRouter()
+router = APIRouter(
+    prefix=PREFIX,
+    tags=[TAG_NAME],
+    dependencies=[Depends(validate_token)]
+)
+
+logger = structlog.get_logger()
 
 
 # Cache Management
-@router.delete("/cache", tags=["cache"])
+@router.delete("/cache")
 async def clear_cache(current_user: User = Depends(get_current_user)):
     """Clear application cache"""
     try:

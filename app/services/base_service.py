@@ -18,10 +18,11 @@ logger = structlog.get_logger()
 class BaseService:
     """Base service class with common functionality"""
 
-    def __init__(self, current_user: User, db = None):
+    def __init__(self, odoo, db = None,  current_user: User = None):
         self.db = db
         self.current_user = current_user
         self.odoo_pool = OdooClientPool()
+        self.odoo = odoo
         self.logger = logger.bind(
             service=self.__class__.__name__)
 
@@ -37,7 +38,6 @@ class BaseService:
             odoo_url=self.current_user.odoo_url,
             odoo_database=self.current_user.odoo_database,
         )
-        print("# =============================== Odoo url ", self.current_user.odoo_url)
         return await self.odoo_pool.get_client(
             url=settings.ODOO_URL,
             db=settings.ODOO_DATABASE,

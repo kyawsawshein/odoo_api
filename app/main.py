@@ -8,7 +8,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.config import settings
 from app import dependency
 from app.core.asyncpg_connect import ConfigureAsyncpg
-from app.dependency import OdooAuthRequirements, ConfigureOdoo
+from app.dependency import OdooAuthRequirements, ConfigureOdoo, SessionOdooConnection
 
 
 def create_app() -> FastAPI:
@@ -89,17 +89,20 @@ dependency.odoo = ConfigureOdoo(
     app, odoo_auth=odoo_auth_requirements,
 )
 
+# Initialize session-based Odoo connection
+dependency.session_odoo = SessionOdooConnection(odoo_auth_requirements)
+
 api_prefix = "/api/v1"
 
 # Include routers
 from app.auth.api.v1 import router as auth_router
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 
-from app.auth.api.v1 import odoo_router
-app.include_router(odoo_router, prefix="/api/v1/odoo", tags=["Odoo"])
-
 from app.api import router as api_router
-app.include_router(api_router, prefix=api_prefix, tags=["api"])
+app.include_router(api_router, prefix=api_prefix)
+
+from app.auth.api.v1 import odoo_router
+app.include_router(odoo_router, prefix=api_prefix)
 
 # from app.auth.profile_router import router as profile_router
 # app.include_router(profile_router, prefix=api_prefix, tags=["profile"])

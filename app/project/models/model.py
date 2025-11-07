@@ -60,26 +60,28 @@ class ProjectTask(BaseModel):
 class CreateProjectTask(BaseModel):
     name: str
     description: Optional[str] = None
+    project_id: Optional[int] = None
     progress: int = Field(..., ge=0, le=100)  # 0–100
-    user_ids: List[ProjectUser] = []
-    tag_ids: List[str] = []
-    assignees: int = 0
+    user_ids: Optional[List[ProjectUser]] = None
+    tag_ids: Optional[List[str]] = None
+    assignees: Optional[Optional[int]] = None
+    project_id: Optional[Optional[int]] = None
     # blocked_by_task_id: Optional[int] = None  # ID of blocking task (null if none)
-    checklist: List[ChecklistItem] = []
+    checklist: Optional[List[ChecklistItem]] = None
     # planned_start: Optional[str] = None
     # planned_stop: Optional[str] = None
     # real_duration_seconds: int = 0  # e.g., 7200 = 2 hrs
     # timer_running: bool = False
-    subtasks: List["ProjectTask"] = []  # recursive
-    files: List[ProjectFile] = []  # linked documents
+    subtasks: Optional[List["ProjectTask"]]= None  # recursive
+    files: Optional[List[ProjectFile]] = None  # linked documents
 
 
 # Project (top-level)
 class Project(BaseModel):
     id: int
     name: str
-    color: Optional[str] = None
-    user_id: int
+    color: Optional[int] = None
+    user_id: Optional[List] = None
     allocated_hours: Optional[float] = None
 
 
@@ -105,7 +107,7 @@ class Attachment(BaseModel):
 
 # Request/Update models
 class TaskUpdate(BaseModel):
-    progress: Optional[int] = Field(None, ge=0, le=100)
+    progress: Optional[float] = Field(None, ge=0, le=100)
     date_deadline: Optional[datetime] = None
     effective_hours: Optional[float] = None
     # checklist: Optional[List[ChecklistItem]] = None

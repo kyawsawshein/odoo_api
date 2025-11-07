@@ -14,12 +14,12 @@ from .datamodels.odoo_data import ContactData, ProductData, UomData, CategoryDat
 class OdooClient:
     """Async Odoo XML-RPC client"""
 
-    def __init__(self, url: str, db: str, username: str, password: str):
+    def __init__(self, url: str, db: str, username: str, password: str, uid: Optional[int] = None):
         self.url = url
         self.db = db
         self.username = username
         self.password = password
-        self.uid = None
+        self.uid = uid
 
         # Create XML-RPC clients
         self.common = xmlrpc.client.ServerProxy(urljoin(url, "/xmlrpc/2/common"))
@@ -243,39 +243,6 @@ class OdooClient:
         """Delete record"""
         return await self.execute_kw(model, "unlink", [[record_id]])
 
-    # Uom
-    async def search_uom(self, domain: List = None) -> List[Dict]:
-        """Search uom with domain and fields"""
-        if domain is None:
-            domain = []
-        fields = list(UomData.model_fields.keys())
-        results = await self.execute_kw(
-            "uom.uom", "search_read", [domain], {"fields": fields}
-        )
-        return [UomData.model_validate(res) for res in results]
-
-    # Categroy
-    async def search_category(self, domain: List = None) -> List[Dict]:
-        """Search categories with domain and fields"""
-        if domain is None:
-            domain = []
-        fields = list(CategoryData.model_fields.keys())
-        results = await self.execute_kw(
-            "uom.uom", "search_read", [domain], {"fields": fields}
-        )
-        return [CategoryData.model_validate(res) for res in results]
-
-     # Currency
-    async def search_currency(self, domain: List = None) -> List[Dict]:
-        """Search categories with domain and fields"""
-        if domain is None:
-            domain = []
-        fields = list(CurrencyData.model_fields.keys())
-        results = await self.execute_kw(
-            "res.currency", "search_read", [domain], {"fields": fields}
-        )
-        return [CurrencyData.model_validate(res) for res in results]
-    
 
 class OdooClientPool:
     """Pool of Odoo clients for concurrent operations"""
@@ -284,23 +251,74 @@ class OdooClientPool:
         self.clients = {}
 
     async def get_client(
-        self, url: str, db: str, username: str, password: str
+        self, url: str, db: str, username: str, password: str, uid: Optional[int] = None
     ) -> OdooClient:
         """Get or create Odoo client from pool"""
         key = f"{db}:{username}"
 
         if key not in self.clients:
             print("#=================== Odoo authenticate ==========================")
-            client = OdooClient(url or settings.ODOO_URL, db, username, password)
-            await client.authenticate()
+            client = OdooClient(url or settings.ODOO_URL, db, username, password, uid)
+            if not uid:
+                await client.authenticate()
             self.clients[key] = client
 
         return self.clients[key]
+
+    async def get_client_by_uid(self, uid: int) -> Optional[OdooClient]:
+        """Get Odoo client by user ID from pool"""
+        for client in self.clients.values():
+            if client.uid == uid:
+                return client
+        return None
 
     async def close_all(self):
         """Close all clients in pool"""
         self.clients.clear()
 
 
+class SessionOdooClient:
+    """Session-based Odoo client that uses cookies for authentication"""
+    
+    def __init__(self):
+        self.pool = OdooClientPool()
+    
+    async def authenticate_and_get_uid(
+        self, url: str, db: str, username: str, password: str
+    ) -> int:
+        """Authenticate with Odoo and return user ID for session storage"""
+        client = await self.pool.get_client(url, db, username, password)
+        return client.uid
+    
+    async def execute_with_session(
+        self,
+        url: str,
+        db: str,
+        username: str,
+        password: str,
+        uid: Optional[int],
+        model: str,
+        method: str,
+        args: List,
+        kwargs: Dict = None
+    ) -> Any:
+        """Execute Odoo method using session (uid from cookie) if available"""
+        if uid:
+            # Try to use existing session
+            client = await self.pool.get_client(url, db, username, password, uid)
+            try:
+                return await client.execute_kw(model, method, args, kwargs)
+            except Exception:
+                # If session is invalid, re-authenticate
+                print("Session invalid, re-authenticating...")
+                client = await self.pool.get_client(url, db, username, password)
+                return await client.execute_kw(model, method, args, kwargs)
+        else:
+            # No session, authenticate first
+            client = await self.pool.get_client(url, db, username, password)
+            return await client.execute_kw(model, method, args, kwargs)
+
+
 # Global Odoo client pool
 odoo_pool = OdooClientPool()
+session_odoo_client = SessionOdooClient()

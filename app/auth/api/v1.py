@@ -31,8 +31,6 @@ from app.odoo.client import OdooClient
 
 logger = structlog.get_logger()
 router = APIRouter()
-# oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
-
 
 @router.post(Route.token, response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -58,7 +56,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
 
 
-PREFIX = "/v1/odoo"
+PREFIX = "/odoo"
 TAG_NAME = "Odoo"
 
 odoo_router = APIRouter(
@@ -66,8 +64,6 @@ odoo_router = APIRouter(
     tags=[TAG_NAME],
     dependencies=[Depends(validate_token)]
 )
-oauthz_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/odoo-login")
-
 
 async def get_current_user(request: Request) -> User:
     """
@@ -115,24 +111,9 @@ async def get_current_user(request: Request) -> User:
         raise e
 
 
-# @odoo_router.post(Route.api_token)
-# async def create_api_token(
-#     name: str, scopes: list[str], current_user: User = Depends(get_current_user)
-# ):
-#     """Create API token for external integrations"""
-#     api_token = generate_api_token(name, current_user.id, scopes)
-
-#     return {
-#         "name": name,
-#         "token": api_token,
-#         "scopes": scopes,
-#         "user_id": current_user.id,
-#     }
-
-
 @odoo_router.post(Route.odoo_login)
 async def odoo_login(credentials: OdooUserCredentials, response: Response):
-    """Authenticate with Odoo and get JWT token"""
+    """Authenticate with Odoo and get JWT token with session cookie"""
     try:
         # Create Odoo client and authenticate
         logger.info(f"Attempting Odoo login : {credentials.odoo_username}")
@@ -168,6 +149,8 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
             ),
             expires_delta=access_token_expires,
         )
+        
+        # Set both JWT token and user_id cookies
         response.set_cookie(
             key="odoo_token",
             value=access_token,
@@ -176,15 +159,24 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
             samesite="lax",
             max_age=24 * 60 * 60,  # 24 hours
         )
+        
+        # Store user_id in cookie for session-based authentication
+        response.set_cookie(
+            key="odoo_user_id",
+            value=str(uid),
+            httponly=True,
+            secure=False,  # Set to True in production with HTTPS
+            samesite="lax",
+            max_age=24 * 60 * 60,  # 24 hours
+        )
 
-        return access_token
-        # return {
-        #     "message": "Odoo authentication successful",
-        #     "jwt_token": access_token,
-        #     "expires_in": access_token_expires,
-        #     "odoo_user_id": uid,
-        #     "odoo_username": credentials.odoo_username,
-        # }
+        return {
+            "message": "Odoo authentication successful",
+            "jwt_token": access_token,
+            "expires_in": access_token_expires,
+            "odoo_user_id": uid,
+            "odoo_username": credentials.odoo_username,
+        }
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(
