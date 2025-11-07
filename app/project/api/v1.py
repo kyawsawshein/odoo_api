@@ -28,7 +28,7 @@ logger = structlog.get_logger()
 
 
 router = APIRouter(
-    prefix="/frontend/projects",
+    prefix="/projects",
     tags=["Frontend Projects"],
     # The validate_token dependency is now handled by get_current_user,
     # which is implicitly required by the @require_roles decorator.

@@ -5,13 +5,6 @@ from requests import request
 from pydantic import BaseModel
 
 from app.config import settings
-from app.erp.schema.authz_login_payload import Creds, LoginPayload
-from app.erp.schema.odoo_rpc_payload import (
-    RequestPayLoad,
-    Params,
-    PayLoadParams,
-)
-
 from app.auth.authz_exception import (
     TokenExpiredError,
     InvalidCreds,

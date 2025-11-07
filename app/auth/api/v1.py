@@ -64,7 +64,7 @@ TAG_NAME = "Odoo"
 odoo_router = APIRouter(
     prefix=PREFIX,
     tags=[TAG_NAME],
-    # dependencies=[Depends(validate_token)]
+    dependencies=[Depends(validate_token)]
 )
 oauthz_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/odoo-login")
 

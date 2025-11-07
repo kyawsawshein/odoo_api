@@ -6,7 +6,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
 from app.config import settings
-from app.core.database import close_db, init_db
 from app import dependency
 from app.core.asyncpg_connect import ConfigureAsyncpg
 from app.dependency import OdooAuthRequirements, ConfigureOdoo
@@ -92,11 +91,6 @@ dependency.odoo = ConfigureOdoo(
 
 api_prefix = "/api/v1"
 
-
-
-
-
-
 # Include routers
 from app.auth.api.v1 import router as auth_router
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
@@ -107,14 +101,12 @@ app.include_router(odoo_router, prefix="/api/v1/odoo", tags=["Odoo"])
 from app.api import router as api_router
 app.include_router(api_router, prefix=api_prefix, tags=["api"])
 
-from app.auth.profile_router import router as profile_router
+# from app.auth.profile_router import router as profile_router
 # app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
 
 from app.project.api.v1 import router as frontend_project_router
 app.include_router(frontend_project_router, prefix=api_prefix)
 
-from app.projects.api.v1 import router as project
-app.include_router(project, prefix=api_prefix)
 
 
 if __name__ == "__main__":
