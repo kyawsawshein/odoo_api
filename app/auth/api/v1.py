@@ -10,14 +10,13 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from app.auth.api.route_name import Route
 from app.auth.auth import generate_jwt_token, validate_token
-from app.auth.authz import get_authz_token
 from app.auth.models.models import (
-    OdooJWTLoginCredentials,
     OdooUserCredentials,
     Token,
     TokenData,
     User,
 )
+from app.auth.schemas.schemas import SyncResponse, OdooAuthResponse
 from app.auth.utils import (
     create_access_token,
     generate_api_token,
@@ -26,16 +25,17 @@ from app.auth.utils import (
     verify_token,
 )
 from app.config import settings
-from app.core.database import get_db
 from app.odoo.client import OdooClient
 
 logger = structlog.get_logger()
 router = APIRouter()
 
+
 @router.post(Route.token, response_model=Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login and get access token using .env credentials"""
     # Verify username matches API_USER from .env
+    print("token auth", form_data)
     if form_data.username != settings.API_USER:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -60,10 +60,9 @@ PREFIX = "/odoo"
 TAG_NAME = "Odoo"
 
 odoo_router = APIRouter(
-    prefix=PREFIX,
-    tags=[TAG_NAME],
-    dependencies=[Depends(validate_token)]
+    prefix=PREFIX, tags=[TAG_NAME], dependencies=[Depends(validate_token)]
 )
+
 
 async def get_current_user(request: Request) -> User:
     """
@@ -149,7 +148,7 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
             ),
             expires_delta=access_token_expires,
         )
-        
+
         # Set both JWT token and user_id cookies
         response.set_cookie(
             key="odoo_token",
@@ -159,7 +158,7 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
             samesite="lax",
             max_age=24 * 60 * 60,  # 24 hours
         )
-        
+
         # Store user_id in cookie for session-based authentication
         response.set_cookie(
             key="odoo_user_id",
@@ -170,13 +169,14 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
             max_age=24 * 60 * 60,  # 24 hours
         )
 
-        return {
-            "message": "Odoo authentication successful",
-            "jwt_token": access_token,
-            "expires_in": access_token_expires,
-            "odoo_user_id": uid,
-            "odoo_username": credentials.odoo_username,
-        }
+        return OdooAuthResponse(
+            success=True,
+            message="Odoo authentication successful.",
+            jwt_token=access_token,
+            expires_in=access_token_expires.days,
+            odoo_user_id=uid,
+            odoo_username=credentials.odoo_username,
+        )
 
     except requests.exceptions.RequestException as e:
         raise HTTPException(
@@ -194,51 +194,3 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
 async def read_users_me(current_user: User = Depends(get_current_user)):
     """Get current user information"""
     return current_user
-
-
-# @odoo_router.post(Route.odoo_jwt_login)
-# async def odoo_jwt_login(
-#     credentials: OdooJWTLoginCredentials,
-#     response: Response,
-# ):
-#     """Authenticate with Odoo JWT endpoint and store token in cookie"""
-#     try:
-#         # Extract JWT token from response
-#         jwt_data = await get_authz_token(
-#             login=credentials.login, pwd=credentials.password
-#         )
-#         print("Odoo login jwt data ", jwt_data)
-#         jwt_token = jwt_data
-
-#         if not jwt_token:
-#             raise HTTPException(
-#                 status_code=status.HTTP_401_UNAUTHORIZED,
-#                 detail="No token received from Odoo JWT endpoint",
-#             )
-
-#         # Store JWT token in cookie
-#         response.set_cookie(
-#             key="odoo_jwt_token",
-#             value=jwt_token,
-#             httponly=True,
-#             secure=False,  # Set to True in production with HTTPS
-#             samesite="lax",
-#             max_age=24 * 60 * 60,  # 24 hours
-#         )
-#         return jwt_token
-#         # return {
-#         #     "message": "Odoo JWT authentication successful",
-#         #     "login": credentials.login,
-#         #     "token_received": True,
-#         # }
-
-#     except requests.exceptions.RequestException as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Connection to Odoo JWT endpoint failed: {str(e)}",
-#         )
-#     except Exception as e:
-#         raise HTTPException(
-#             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             detail=f"Odoo JWT authentication failed: {str(e)}",
-#         )

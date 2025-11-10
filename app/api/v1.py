@@ -13,9 +13,7 @@ PREFIX = "/cache"
 TAG_NAME = "Cache"
 
 router = APIRouter(
-    prefix=PREFIX,
-    tags=[TAG_NAME],
-    dependencies=[Depends(validate_token)]
+    prefix=PREFIX, tags=[TAG_NAME], dependencies=[Depends(validate_token)]
 )
 
 logger = structlog.get_logger()

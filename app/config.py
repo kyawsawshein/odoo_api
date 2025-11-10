@@ -50,7 +50,6 @@ class Settings(BaseSettings):
             return self.DATABASE_URI
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
 
-
     # Redis Configuration
     REDIS_URL: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
 
@@ -79,7 +78,7 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8080"
-    
+
     @property
     def allowed_origins_list(self) -> list:
         """Convert ALLOWED_ORIGINS string to list"""

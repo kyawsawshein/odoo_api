@@ -7,12 +7,13 @@ from .logger import DEBUG_QUALNAME
 
 _logger = logging.getLogger(DEBUG_QUALNAME)
 
+
 class ConfigureAsyncpg:
     def __init__(
         self,
         app: FastAPI,
         dsn: str,
-        db_code= "odoo",
+        db_code="odoo",
         *,
         init_db: typing.Callable = None,  # callable for running sql on init
         pool=None,  # usable on testing
@@ -91,13 +92,12 @@ class ConfigureAsyncpg:
             @app.get("/")
             async def get_content(db = Depens(db.transaction)):
                 await db.execute("insert into keys values (1, 2)")
-                await db.execute("insert into keys values (1, 2)")
         All view function executed, are wrapped inside a postgresql transaction
         """
         async with self.pool.acquire() as db:
             txn = db.transaction()
             await txn.start()
-            try:#pylint: disable=no-else-raise
+            try:  # pylint: disable=no-else-raise
                 yield db
             except:  # noqa
                 await txn.rollback()

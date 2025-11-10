@@ -86,7 +86,8 @@ odoo_auth_requirements = OdooAuthRequirements(
 )
 
 dependency.odoo = ConfigureOdoo(
-    app, odoo_auth=odoo_auth_requirements,
+    app,
+    odoo_auth=odoo_auth_requirements,
 )
 
 # Initialize session-based Odoo connection
@@ -94,22 +95,17 @@ dependency.session_odoo = SessionOdooConnection(odoo_auth_requirements)
 
 api_prefix = "/api/v1"
 
-# Include routers
+# Import routers
 from app.auth.api.v1 import router as auth_router
-app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
-
 from app.api import router as api_router
-app.include_router(api_router, prefix=api_prefix)
-
 from app.auth.api.v1 import odoo_router
-app.include_router(odoo_router, prefix=api_prefix)
-
-# from app.auth.profile_router import router as profile_router
-# app.include_router(profile_router, prefix=api_prefix, tags=["profile"])
-
 from app.project.api.v1 import router as frontend_project_router
-app.include_router(frontend_project_router, prefix=api_prefix)
 
+# Include routers
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
+app.include_router(api_router, prefix=api_prefix)
+app.include_router(odoo_router, prefix=api_prefix)
+app.include_router(frontend_project_router, prefix=api_prefix)
 
 
 if __name__ == "__main__":

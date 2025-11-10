@@ -1,59 +1,22 @@
-# """Database schemas for authentication"""
+"""Pydantic models for API requests and responses"""
 
-# from app.core.schemas import BaseSchema
-# from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
+from typing import List, Optional
+from pydantic import BaseModel, Field
+from datetime import datetime, date
 
-
-# class User(BaseSchema):
-#     """User database model"""
-
-#     __tablename__ = "users"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     username = Column(String(50), unique=True, index=True, nullable=False)
-#     email = Column(String(255), unique=True, index=True, nullable=False)
-#     full_name = Column(String(255), nullable=True)
-#     hashed_password = Column(String(255), nullable=False)
-#     is_active = Column(Boolean, default=True)
-
-#     # Odoo credentials (encrypted in production)
-#     odoo_url = Column(String(255), nullable=True)
-#     odoo_database = Column(String(255), nullable=True)
-#     odoo_username = Column(String(255), nullable=True)
-#     odoo_password = Column(String(255), nullable=True)
-
-#     def __repr__(self):
-#         return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"
+# from decimal import Decimal
 
 
-# class OdooSession(BaseSchema):
-#     """Odoo session storage for user authentication"""
+class SyncResponse(BaseModel):
+    """Synchronization response model"""
 
-#     __tablename__ = "odoo_sessions"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     user_id = Column(Integer, nullable=False)
-#     odoo_uid = Column(Integer, nullable=False)
-#     odoo_session_id = Column(String(255), nullable=False)
-#     odoo_database = Column(String(255), nullable=False)
-#     is_active = Column(Boolean, default=True)
-
-#     def __repr__(self):
-#         return f"<OdooSession(user_id={self.user_id}, odoo_uid={self.odoo_uid})>"
+    success: bool = False
+    message: str
+    errors: List[str] = Field(default_factory=list)
 
 
-# class APIToken(BaseSchema):
-#     """API token for external integrations"""
-
-#     __tablename__ = "api_tokens"
-
-#     id = Column(Integer, primary_key=True, index=True)
-#     name = Column(String(100), nullable=False)
-#     token = Column(String(255), unique=True, nullable=False)
-#     user_id = Column(Integer, nullable=False)
-#     scopes = Column(Text, nullable=False)  # JSON string of allowed scopes
-#     is_active = Column(Boolean, default=True)
-
-#     def __repr__(self):
-#         return f"<APIToken(name='{self.name}', user_id={self.user_id})>"
-
+class OdooAuthResponse(SyncResponse):
+    jwt_token: Optional[str] = None
+    expires_in: Optional[int] = None
+    odoo_user_id: Optional[int] = None
+    odoo_username: Optional[str] = None

@@ -11,6 +11,7 @@ class User(BaseModel):
     name: str
     login: str
 
+
 class ProjectTag(BaseModel):
     id: int
     name: str
@@ -72,7 +73,7 @@ class CreateProjectTask(BaseModel):
     # planned_stop: Optional[str] = None
     # real_duration_seconds: int = 0  # e.g., 7200 = 2 hrs
     # timer_running: bool = False
-    subtasks: Optional[List["ProjectTask"]]= None  # recursive
+    subtasks: Optional[List["ProjectTask"]] = None  # recursive
     files: Optional[List[ProjectFile]] = None  # linked documents
 
 
@@ -89,13 +90,13 @@ class ProjectTask(BaseModel):
     id: int
     name: str
     project_id: int
-    description: Optional[str] =  None
+    description: Optional[str] = None
     progress: Optional[float] = None
     user_ids: Optional[List[int]] = None
     tag_ids: Optional[List[int]] = None
     effective_hours: Optional[float] = 0.0
     parent_id: Optional[int] = None
-  
+
 
 class Attachment(BaseModel):
     id: int

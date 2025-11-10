@@ -11,7 +11,7 @@ class ProjectRequest(BaseModel):
     # is_failover : bool = Field(description="Use to check done preorder for failover plan.")
     skip: int = 0
     limit: int = 100
-    search: Optional[str] = None,
+    search: Optional[str] = (None,)
 
 
 # User (assignee/team member)

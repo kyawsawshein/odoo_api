@@ -1,18 +1,3 @@
-"""Database configuration and session management"""
-from sqlalchemy import (
-    Column,
-    Integer,
-    String,
-    # Boolean,
-    DateTime,
-    # Text,
-    Numeric,
-    ForeignKey,
-)
-from sqlalchemy.sql import func
-
-# Base class for models
-
 from enum import Enum
 from pydantic import BaseModel
 from fastapi import status
@@ -33,6 +18,7 @@ class UnauthorizeCode(Enum):
     INVALID_JWT = 7
     FAILED_AUTH = 8
 
+
 class UnauthorizedMessage(Message):
     status: int
 
@@ -43,4 +29,3 @@ def unauthorized_response(code: UnauthorizeCode, mesg: str):
         obj=UnauthorizedMessage(status=code.value, detail=mesg),
         headers={"WWW-Authenticate": "Bearer"},
     )
-

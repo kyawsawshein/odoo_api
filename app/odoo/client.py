@@ -9,12 +9,13 @@ from urllib.parse import urljoin
 
 from app.config import settings
 
-from .datamodels.odoo_data import ContactData, ProductData, UomData, CategoryData, CurrencyData
 
 class OdooClient:
     """Async Odoo XML-RPC client"""
 
-    def __init__(self, url: str, db: str, username: str, password: str, uid: Optional[int] = None):
+    def __init__(
+        self, url: str, db: str, username: str, password: str, uid: Optional[int] = None
+    ):
         self.url = url
         self.db = db
         self.username = username
@@ -54,64 +55,6 @@ class OdooClient:
             )
         except Exception as e:
             raise Exception(f"Odoo operation failed: {str(e)}")
-
-    # Projecet Operations
-    async def create_project(self, project_data: Dict) -> int:
-        """Create a new contact in Odoo"""
-        return await self.execute_kw("project.project", "create", [project_data])
-
-    async def update_project(self, project_id: int, project_data: Dict) -> bool:
-        """Update existing contact"""
-        return await self.execute_kw("project.project", "write", [[project_id], project_data])
-
-    # Contact Operations
-    async def create_contact(self, contact_data: Dict) -> int:
-        """Create a new contact in Odoo"""
-        return await self.execute_kw("res.partner", "create", [contact_data])
-
-    async def update_contact(self, contact_id: int, contact_data: Dict) -> bool:
-        """Update existing contact"""
-        return await self.execute_kw(
-            "res.partner", "write", [[contact_id], contact_data]
-        )
-
-    async def search_contacts(
-        self, domain: List = None, fields: List = None
-    ) -> List[Dict]:
-        """Search contacts with domain and fields"""
-        if domain is None:
-            domain = []
-        if fields is None:
-            fields = list(ContactData.model_fields.keys())
-        results = await self.execute_kw(
-            "res.partner", "search_read", [domain], {"fields": fields}
-        )
-        return [ContactData.model_validate(res) for res in results]
-
-    # Product Operations
-    async def create_product(self, product_data: Dict) -> int:
-        """Create a new product in Odoo"""
-        return await self.execute_kw("product.product", "create", [product_data])
-
-    async def update_product(self, product_id: int, product_data: Dict) -> bool:
-        """Update existing product"""
-        return await self.execute_kw(
-            "product.product", "write", [[product_id], product_data]
-        )
-
-    async def search_products(
-        self, domain: List = None, fields: List = None
-    ) -> List[Dict]:
-        """Search products with domain and fields"""
-        if domain is None:
-            domain = []
-        if fields is None:
-            fields = list(ProductData.model_fields.keys())
-
-        results = await self.execute_kw(
-            "product.product", "search_read", [domain], {"fields": fields}
-        )
-        return [ProductData.model_validate(res) for res in results]
 
     # Inventory Operations
     async def get_stock_quantities(self, product_ids: List[int] = None) -> List[Dict]:
@@ -191,7 +134,12 @@ class OdooClient:
 
     # Generic Operations
     async def search_records(
-        self, model: str, domain: List = None, fields: List = None, limit: int = None, offset: int = None
+        self,
+        model: str,
+        domain: List = None,
+        fields: List = None,
+        limit: int = None,
+        offset: int = None,
     ) -> List[Dict]:
         """Generic search records from any model"""
         if domain is None:
@@ -213,9 +161,7 @@ class OdooClient:
         """Read multiple records by IDs"""
         if fields is None:
             fields = ["id", "name"]
-        return await self.execute_kw(
-            model, "read", [record_ids], {"fields": fields}
-        )
+        return await self.execute_kw(model, "read", [record_ids], {"fields": fields})
 
     async def create_record(self, model: str, values: Dict) -> int:
         """Create a new record in any model"""
@@ -257,7 +203,6 @@ class OdooClientPool:
         key = f"{db}:{username}"
 
         if key not in self.clients:
-            print("#=================== Odoo authenticate ==========================")
             client = OdooClient(url or settings.ODOO_URL, db, username, password, uid)
             if not uid:
                 await client.authenticate()
@@ -279,17 +224,17 @@ class OdooClientPool:
 
 class SessionOdooClient:
     """Session-based Odoo client that uses cookies for authentication"""
-    
+
     def __init__(self):
         self.pool = OdooClientPool()
-    
+
     async def authenticate_and_get_uid(
         self, url: str, db: str, username: str, password: str
     ) -> int:
         """Authenticate with Odoo and return user ID for session storage"""
         client = await self.pool.get_client(url, db, username, password)
         return client.uid
-    
+
     async def execute_with_session(
         self,
         url: str,
@@ -300,7 +245,7 @@ class SessionOdooClient:
         model: str,
         method: str,
         args: List,
-        kwargs: Dict = None
+        kwargs: Dict = None,
     ) -> Any:
         """Execute Odoo method using session (uid from cookie) if available"""
         if uid:

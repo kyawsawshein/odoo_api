@@ -26,8 +26,10 @@ class TokenData(BaseModel):
     roles: list[str] = []
     exp: Optional[datetime] = None
 
+
 class UserBase(BaseModel):
     """Base user model"""
+
     id: int
     username: str
     email: EmailStr

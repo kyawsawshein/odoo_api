@@ -42,7 +42,6 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 async def validate_token(request: Request, token: str = Depends(oauth2_scheme)):
-    print("#======= token : ", token)
     if token == settings.API_KEY:
         return token
     claim = decode_jwt_token(token=token)
@@ -98,7 +97,6 @@ async def generate_jwt_token(
     audience: str = settings.API_JWT_AUDIENCES,
 ) -> Token:
     now_time = datetime.now(tz=timezone.utc).timestamp()
-    print("##### ========== audience ", audience)
     claim = TokenClaims(
         iss=issuer,
         aud=audience,
@@ -106,9 +104,8 @@ async def generate_jwt_token(
         exp=now_time + settings.API_JWT_TOKEN_DURATION,
         sub=subject,
     )
-    print("###### token info : ", claim)
     token_str = jwt.encode(
-        claim.dict(), settings.API_KEY, algorithm=settings.API_JWT_ALGORITHM
+        claim.model_dump(), settings.API_KEY, algorithm=settings.API_JWT_ALGORITHM
     )
     return Token(token_type="Bearer", access_token=token_str)
 

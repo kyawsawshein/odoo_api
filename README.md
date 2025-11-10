@@ -3,7 +3,7 @@
 A high-performance FastAPI application designed to integrate with Odoo 19 for real-time data synchronization across multiple business domains including contacts, products, inventory, purchases, sales, deliveries, and accounting.
 
 ## Features
-
+<!-- https://zervi-wiki-u34072.vm.elestio.app/s/ZSAA/p/front-end-project-app-test-api-to-odoo-4WcEFZddD7 -->
 - **Multi-domain Integration**: Contacts, Products, Inventory, Purchases, Sales, Deliveries, Accounting
 - **High Concurrency**: Supports 1000+ concurrent users
 - **Async Processing**: Kafka integration for background processing

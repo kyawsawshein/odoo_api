@@ -8,9 +8,9 @@ import structlog
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.api.models.models import SyncResponse
-from app.auth.api.v1 import get_current_user
+# from app.auth.api.v1 import get_current_user
 from app.auth.models.models import User
-from app.config import settings
+# from app.config import settings
 
 # Database dependency is now passed as parameter, not imported at module level
 from app.project.api.route_name import Route
@@ -30,7 +30,7 @@ from app.project.schemas.project import (
     ProjectSchema,
     ProjectTaskSchema,
 )
-from app.project.services.projeect_service import ProjectService
+# from app.project.services.projeect_service import ProjectService
 
 logger = structlog.get_logger()
 

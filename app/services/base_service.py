@@ -18,13 +18,12 @@ logger = structlog.get_logger()
 class BaseService:
     """Base service class with common functionality"""
 
-    def __init__(self, odoo, db = None,  current_user: User = None):
+    def __init__(self, odoo, db=None, current_user: User = None):
         self.db = db
         self.current_user = current_user
         self.odoo_pool = OdooClientPool()
         self.odoo = odoo
-        self.logger = logger.bind(
-            service=self.__class__.__name__)
+        self.logger = logger.bind(service=self.__class__.__name__)
 
     async def _get_odoo_client(self) -> OdooClientPool:
         """Get Odoo client from pool using user session credentials"""

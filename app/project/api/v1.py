@@ -1,16 +1,13 @@
 """Frontend API router for project and task management with Odoo synchronization"""
 
-from functools import wraps
 from typing import List, Optional
 
 import structlog
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, UploadFile
 
 from app.api.models.models import SyncResponse
 from app.auth.api.v1 import validate_token
-from app.auth.models.models import User
 from app.auth.session_auth import get_odoo_session_user, get_session_odoo_connection
-from app.core.database import get_db
 from app.dependency import odoo, db
 from app.project.api.route_name import Route
 from app.project.controllers.project_controller import ProjectController
