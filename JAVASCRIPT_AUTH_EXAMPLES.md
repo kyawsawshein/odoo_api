@@ -201,6 +201,7 @@ completeAuthenticationFlow(
 .then(data => {
     console.log('Odoo User ID:', data.odoo_user_id);
     console.log('JWT Token:', data.jwt_token);
+    console.log('Login Parameter:', data.login); // Store this for API calls
 })
 .catch(error => {
     console.error('Authentication failed:', error);
@@ -209,12 +210,16 @@ completeAuthenticationFlow(
 
 ### Making Session-Based API Calls
 
-After Odoo login, cookies are automatically sent with requests:
+After Odoo login, cookies are automatically sent with requests. The API now requires a `login` parameter for session-based Odoo connections:
 
 ```javascript
-// Function to make session-based API calls
-async function makeSessionApiCall(url, options = {}) {
-    const response = await fetch(url, {
+// Function to make session-based API calls with login parameter
+async function makeSessionApiCall(url, login, options = {}) {
+    // Add login parameter to URL if not already present
+    const separator = url.includes('?') ? '&' : '?';
+    const urlWithLogin = `${url}${separator}login=${encodeURIComponent(login)}`;
+    
+    const response = await fetch(urlWithLogin, {
         ...options,
         credentials: 'include' // Automatically sends cookies
     });
@@ -227,9 +232,9 @@ async function makeSessionApiCall(url, options = {}) {
 }
 
 // Example: Get projects using session authentication
-async function getProjectsWithSession() {
+async function getProjectsWithSession(login) {
     try {
-        const projects = await makeSessionApiCall('/api/v1/projects');
+        const projects = await makeSessionApiCall('/api/v1/projects', login);
         console.log('Projects:', projects);
         return projects;
     } catch (error) {
@@ -238,9 +243,9 @@ async function getProjectsWithSession() {
 }
 
 // Example: Create project using session authentication
-async function createProject(projectData) {
+async function createProject(projectData, login) {
     try {
-        const result = await makeSessionApiCall('/api/v1/projects', {
+        const result = await makeSessionApiCall('/api/v1/projects', login, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -253,6 +258,28 @@ async function createProject(projectData) {
         console.error('Failed to create project:', error);
     }
 }
+
+// Example: Get project by ID
+async function getProjectById(projectId, login) {
+    try {
+        const project = await makeSessionApiCall(`/api/v1/projects/${projectId}`, login);
+        console.log('Project:', project);
+        return project;
+    } catch (error) {
+        console.error('Failed to fetch project:', error);
+    }
+}
+
+// Example: Get project tasks
+async function getProjectTasks(projectId, login) {
+    try {
+        const tasks = await makeSessionApiCall(`/api/v1/projects/${projectId}/tasks`, login);
+        console.log('Tasks:', tasks);
+        return tasks;
+    } catch (error) {
+        console.error('Failed to fetch tasks:', error);
+    }
+}
 ```
 
 ## 3. Complete Authentication Flow Example
@@ -263,6 +290,7 @@ class OdooApiClient {
         this.baseUrl = baseUrl;
         this.isAuthenticated = false;
         this.apiToken = null;
+        this.login = null; // Store login parameter for API calls
     }
 
     // Step 1: API authentication
@@ -320,6 +348,7 @@ class OdooApiClient {
 
             const data = await response.json();
             this.isAuthenticated = true;
+            this.login = data.login || username; // Store login parameter for API calls
             
             console.log('Odoo login successful');
             return data;
@@ -331,13 +360,21 @@ class OdooApiClient {
         }
     }
 
-    // Generic API call with session
+    // Generic API call with session and login parameter
     async apiCall(endpoint, options = {}) {
         if (!this.isAuthenticated) {
             throw new Error('Not authenticated. Please login first.');
         }
 
-        const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        if (!this.login) {
+            throw new Error('Login parameter not found. Please complete Odoo login first.');
+        }
+
+        // Add login parameter to URL
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const urlWithLogin = `${this.baseUrl}${endpoint}${separator}login=${encodeURIComponent(this.login)}`;
+
+        const response = await fetch(urlWithLogin, {
             ...options,
             credentials: 'include'
         });
@@ -418,18 +455,35 @@ app.add_middleware(
 - Set `secure=True` in production with HTTPS
 - Cookies have 24-hour expiration
 
+### Login Parameter Requirement
+- All session-based API calls now require a `login` parameter
+- The login parameter should be passed as a URL query parameter: `?login=username`
+- This parameter is used to retrieve the correct session token from cookies
+- Store the login value returned from the Odoo login response
+
 ### Error Handling
 Always handle authentication errors:
 ```javascript
 // Check if user is authenticated
-function checkAuthentication() {
-    // You can check if cookies exist or make a simple API call
-    return fetch('/api/v1/auth/me', {
+function checkAuthentication(login) {
+    if (!login) {
+        return false;
+    }
+    // Make a simple API call with login parameter
+    return fetch(`/api/v1/auth/me?login=${encodeURIComponent(login)}`, {
         credentials: 'include'
     })
     .then(response => response.ok)
     .catch(() => false);
 }
+
+// Handle session expiration
+function handleSessionExpiration() {
+    // Clear stored credentials
+    localStorage.removeItem('api_token');
+    // Redirect to login page or show login modal
+    window.location.href = '/login';
+}
 ```
 
-This JavaScript implementation will work with your session-based Odoo authentication system, automatically using the cookies for subsequent API calls after login.
+This JavaScript implementation will work with your session-based Odoo authentication system, automatically using the cookies for subsequent API calls after login. Remember to include the `login` parameter in all session-based API calls.

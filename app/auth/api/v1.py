@@ -10,13 +10,9 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from app.auth.api.route_name import Route
 from app.auth.auth import generate_jwt_token, validate_token
-from app.auth.models.models import (
-    OdooUserCredentials,
-    Token,
-    TokenData,
-    User,
-)
-from app.auth.schemas.schemas import SyncResponse, OdooAuthResponse
+from app.auth.models.models import OdooUserCredentials, Token, TokenData, User
+from app.auth.schemas.schemas import OdooAuthResponse, SyncResponse
+from app.auth.session_auth import require_odoo_session
 from app.auth.utils import (
     create_access_token,
     generate_api_token,
@@ -56,14 +52,6 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     )
 
 
-PREFIX = "/odoo"
-TAG_NAME = "Odoo"
-
-odoo_router = APIRouter(
-    prefix=PREFIX, tags=[TAG_NAME], dependencies=[Depends(validate_token)]
-)
-
-
 async def get_current_user(request: Request) -> User:
     """
     Dependency to get the current authenticated user.
@@ -99,15 +87,23 @@ async def get_current_user(request: Request) -> User:
             full_name=token_data.username,
             is_active=True,
             odoo_url=settings.ODOO_URL,  # The Odoo URL is from server settings
-            odoo_database=token_data.odoo_database,
+            # odoo_database=token_data.odoo_database,
             odoo_username=token_data.odoo_username,
-            odoo_password=token_data.odoo_password,
+            # odoo_password=token_data.odoo_password,
             roles=token_data.roles,
         )
         return user
     except HTTPException as e:
         logger.error("Authentication error in get_current_user", detail=e.detail)
         raise e
+
+
+PREFIX = "/odoo"
+TAG_NAME = "Odoo"
+
+odoo_router = APIRouter(
+    prefix=PREFIX, tags=[TAG_NAME], dependencies=[Depends(validate_token)]
+)
 
 
 @odoo_router.post(Route.odoo_login)
@@ -151,7 +147,7 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
 
         # Set both JWT token and user_id cookies
         response.set_cookie(
-            key="odoo_token",
+            key=f"odoo_token_{credentials.odoo_username}",
             value=access_token,
             httponly=True,
             secure=False,  # Set to True in production with HTTPS
@@ -191,6 +187,5 @@ async def odoo_login(credentials: OdooUserCredentials, response: Response):
 
 
 @odoo_router.get(Route.me, response_model=User)
-async def read_users_me(current_user: User = Depends(get_current_user)):
-    """Get current user information"""
+async def read_users_me(current_user: User = Depends(require_odoo_session)):
     return current_user

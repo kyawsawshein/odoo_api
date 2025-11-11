@@ -8,12 +8,12 @@ from fastapi import FastAPI, Request
 
 
 # from odoo.core.config import settings
-from app.core.logger import DEBUG_QUALNAME
+from app.core.logger import logger
 
 # from odoo.core.exceptions import CustomHTTPException
 from app.odoo.client import session_odoo_client
 
-_logger = logging.getLogger(DEBUG_QUALNAME)
+# _logger is now replaced by the simple logger instance
 
 # Database
 db = None

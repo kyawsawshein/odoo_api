@@ -90,6 +90,7 @@ class ProjectTask(BaseModel):
     id: int
     name: str
     project_id: int
+    state: str
     description: Optional[str] = None
     progress: Optional[float] = None
     user_ids: Optional[List[int]] = None

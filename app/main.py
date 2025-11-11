@@ -8,6 +8,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from app.config import settings
 from app import dependency
 from app.core.asyncpg_connect import ConfigureAsyncpg
+from app.core.logger import logger
 from app.dependency import OdooAuthRequirements, ConfigureOdoo, SessionOdooConnection
 
 
@@ -38,12 +39,16 @@ def create_app() -> FastAPI:
     # Startup and shutdown events
     @app.on_event("startup")
     async def startup_event():
+        # Initialize logging
+        logger.info("Application starting up")
+        
         # await init_db()
         # Initialize other services like Redis, Kafka connections
         pass
 
     @app.on_event("shutdown")
     async def shutdown_event():
+        logger.info("Application shutting down")
         # await close_db()
         # Close other connections
         pass
@@ -100,12 +105,14 @@ from app.auth.api.v1 import router as auth_router
 from app.api import router as api_router
 from app.auth.api.v1 import odoo_router
 from app.project.api.v1 import router as frontend_project_router
+from app.logging.api.v1 import router as logging_router
 
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(api_router, prefix=api_prefix)
 app.include_router(odoo_router, prefix=api_prefix)
 app.include_router(frontend_project_router, prefix=api_prefix)
+app.include_router(logging_router, prefix=api_prefix)
 
 
 if __name__ == "__main__":

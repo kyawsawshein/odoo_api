@@ -8,6 +8,7 @@ from fastapi import Depends, HTTPException, Request, status
 from app.auth.models.models import User
 from app.config import settings
 from app.odoo.client import session_odoo_client
+from app.auth.utils import verify_token
 
 logger = structlog.get_logger()
 
@@ -69,19 +70,30 @@ async def require_odoo_session(
     return current_user
 
 
-async def get_session_odoo_connection(request: Request):
+async def get_session_odoo_connection(request: Request, login: str):
     """
     Dependency that provides session-based Odoo connection.
     Uses user_id from cookie for authentication.
     """
     # Get user_id from cookie
-    user_id_cookie = request.cookies.get("odoo_user_id")
-    uid = int(user_id_cookie) if user_id_cookie else None
+    token = request.cookies.get(f"odoo_token_{login}")
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Odoo session authentication required",
+            headers={"WWW-Authenticate": "Cookie"},
+        )
+    token_data = verify_token(token)
+    uid = token_data.user_id
+    user = token_data.odoo_username
+    pwd = token_data.odoo_password
 
     # Return a wrapper that uses session-based authentication
     class SessionOdooConnection:
-        def __init__(self, uid: Optional[int]):
+        def __init__(self, uid: Optional[int], user: Optional[str], pwd: Optional[str]):
             self.uid = uid
+            self.user = user
+            self.pwd = pwd
 
         async def execute_kw(
             self, model: str, method: str, args: list, kwargs: dict = None
@@ -89,8 +101,8 @@ async def get_session_odoo_connection(request: Request):
             return await session_odoo_client.execute_with_session(
                 settings.ODOO_URL,
                 settings.ODOO_DATABASE,
-                settings.ODOO_USERNAME,
-                settings.ODOO_PASSWORD,
+                self.user,
+                self.pwd,
                 self.uid,
                 model,
                 method,
@@ -98,4 +110,4 @@ async def get_session_odoo_connection(request: Request):
                 kwargs,
             )
 
-    yield SessionOdooConnection(uid)
+    yield SessionOdooConnection(uid, user, pwd)

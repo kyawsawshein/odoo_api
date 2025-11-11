@@ -1,14 +1,9 @@
-"""Logging configuration for Odoo API application"""
+"""Simple file-based logger for Odoo API application"""
 
 import os
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-
-from app.config import settings
-
-DEBUG_QUALNAME = "odoo-api"
 
 
 class SimpleLogger:
@@ -24,18 +19,21 @@ class SimpleLogger:
     
     def _rotate_if_needed(self):
         """Rotate log file if it exceeds max size"""
-        if self.log_file.exists() and self.log_file.stat().st_size > self.max_size:
-            # Rotate existing backups
-            for i in range(self.backup_count - 1, 0, -1):
-                old_file = self.log_file.parent / f"{self.log_file.stem}.{i}{self.log_file.suffix}"
-                new_file = self.log_file.parent / f"{self.log_file.stem}.{i+1}{self.log_file.suffix}"
-                if old_file.exists():
-                    old_file.rename(new_file)
-            
-            # Rotate current log file
-            backup_file = self.log_file.parent / f"{self.log_file.stem}.1{self.log_file.suffix}"
-            if self.log_file.exists():
-                self.log_file.rename(backup_file)
+        try:
+            if self.log_file.exists() and self.log_file.stat().st_size > self.max_size:
+                # Rotate existing backups
+                for i in range(self.backup_count - 1, 0, -1):
+                    old_file = self.log_file.parent / f"{self.log_file.stem}.{i}{self.log_file.suffix}"
+                    new_file = self.log_file.parent / f"{self.log_file.stem}.{i+1}{self.log_file.suffix}"
+                    if old_file.exists():
+                        old_file.rename(new_file)
+                
+                # Rotate current log file
+                backup_file = self.log_file.parent / f"{self.log_file.stem}.1{self.log_file.suffix}"
+                if self.log_file.exists():
+                    self.log_file.rename(backup_file)
+        except Exception as e:
+            print(f"Error rotating log file: {e}")
     
     def _write_log(self, level: str, message: str):
         """Write a log message to file"""
@@ -48,17 +46,15 @@ class SimpleLogger:
             with open(self.log_file, 'a', encoding='utf-8') as f:
                 f.write(log_entry)
             
-            # Also print to console in debug mode
-            if settings.DEBUG:
-                print(log_entry.strip())
+            # Also print to console
+            print(log_entry.strip())
                 
         except Exception as e:
             print(f"Error writing to log file: {e}")
     
     def debug(self, message: str):
         """Log debug message"""
-        if settings.DEBUG:
-            self._write_log("DEBUG", message)
+        self._write_log("DEBUG", message)
     
     def info(self, message: str):
         """Log info message"""
@@ -71,32 +67,6 @@ class SimpleLogger:
     def error(self, message: str):
         """Log error message"""
         self._write_log("ERROR", message)
-
-
-def setup_logging(log_level: Optional[str] = None, log_file: Optional[str] = None):
-    """
-    Setup logging configuration for the application
-    
-    Args:
-        log_level: Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-        log_file: Path to log file, defaults to 'logs/odoo_api.log'
-    """
-    # This function is kept for compatibility but doesn't do much
-    # The SimpleLogger handles its own configuration
-    pass
-
-
-def get_logger(name: str = "odoo-api") -> SimpleLogger:
-    """
-    Get a logger instance with the specified name
-    
-    Args:
-        name: Logger name
-        
-    Returns:
-        SimpleLogger instance
-    """
-    return SimpleLogger()
 
 
 def tail_logs(log_file: str = "logs/odoo_api.log", lines: int = 100) -> list[str]:
@@ -143,4 +113,4 @@ def get_log_files() -> list[str]:
 
 
 # Global logger instance
-logger = get_logger()
+logger = SimpleLogger()

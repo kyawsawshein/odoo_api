@@ -1,5 +1,6 @@
 """Odoo XML-RPC client for FastAPI integration"""
 
+import logging
 import xmlrpc.client
 from typing import Any, Dict, List, Optional
 
@@ -8,6 +9,8 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
 from app.config import settings
+
+_logger = logging.getLogger(__name__)
 
 
 class OdooClient:
@@ -253,7 +256,8 @@ class SessionOdooClient:
             client = await self.pool.get_client(url, db, username, password, uid)
             try:
                 return await client.execute_kw(model, method, args, kwargs)
-            except Exception:
+            except Exception as err:
+                _logger.error("Error : %s", err)
                 # If session is invalid, re-authenticate
                 print("Session invalid, re-authenticating...")
                 client = await self.pool.get_client(url, db, username, password)

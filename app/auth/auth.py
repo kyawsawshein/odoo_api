@@ -11,10 +11,10 @@ from pydantic import BaseModel
 
 from app.config import settings
 from app.core.exceptions import CustomHTTPException
-from app.core.logger import DEBUG_QUALNAME
+from app.core.logger import logger
 from app.core.schemas import UnauthorizeCode, unauthorized_response
 
-_logger = logging.getLogger(DEBUG_QUALNAME)
+# _logger is now replaced by the simple logger instance
 
 BEARER_TOKEN_TYPE = "Bearer"
 
@@ -55,7 +55,7 @@ async def validate_token(request: Request, token: str = Depends(oauth2_scheme)):
 
 def decode_jwt_token(token: str, **options) -> TokenClaims:
     try:
-        return TokenClaims.parse_obj(
+        return TokenClaims.model_validate(
             jwt.decode(
                 jwt=token,
                 key=settings.API_KEY,
@@ -116,7 +116,7 @@ jwt_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token/jwt/login")
 async def validate_jwt_token(
     request: Request, token: str = Depends(jwt_oauth2_scheme)
 ) -> TokenClaims:
-    _logger.debug("#CHK JWT Authentication started : %s", time.time())
+    logger.debug("#CHK JWT Authentication started : %s", time.time())
     try:
         claim = decode_jwt_token(token=token)
         request.state.user = claim.sub

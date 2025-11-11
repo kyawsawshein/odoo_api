@@ -1,0 +1,1 @@
+"""Logging API module for Odoo API application"""

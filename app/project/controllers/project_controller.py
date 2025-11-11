@@ -8,9 +8,8 @@ import structlog
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.api.models.models import SyncResponse
-# from app.auth.api.v1 import get_current_user
+
 from app.auth.models.models import User
-# from app.config import settings
 
 # Database dependency is now passed as parameter, not imported at module level
 from app.project.api.route_name import Route
@@ -30,6 +29,10 @@ from app.project.schemas.project import (
     ProjectSchema,
     ProjectTaskSchema,
 )
+from app.utils.model_name import Method, ModelName
+
+# from app.config import settings
+
 # from app.project.services.projeect_service import ProjectService
 
 logger = structlog.get_logger()
@@ -70,7 +73,10 @@ class ProjectController:
         domain = [("id", "in", user_ids)]
         kwargs = {"fields": user_fields}
         users = await self.odoo.execute_kw(
-            model="res.users", method="search_read", args=[domain], kwargs=kwargs
+            model=ModelName.USER,
+            method=Method.SEARCH_READ,
+            args=[domain],
+            kwargs=kwargs,
         )
         return [User(**user) for user in users]
 
@@ -79,7 +85,7 @@ class ProjectController:
         domain = [("id", "in", tag_ids)]
         kwargs = {"fields": tag_fields}
         tags = await self.odoo.execute_kw(
-            model="project.tags", method="search_read", args=[domain], kwargs=kwargs
+            model=ModelName.TAG, method=Method.SEARCH_READ, args=[domain], kwargs=kwargs
         )
         return [ProjectTag(**tag) for tag in tags]
 
@@ -90,8 +96,8 @@ class ProjectController:
         """Create project in local database and sync with Odoo"""
         try:
             project = await self.odoo.execute_kw(
-                model="project.project",
-                method="create",
+                model=ModelName.PROJECT,
+                method=Method.CREATE,
                 args=[project.model_dump(exclude=None)],
             )
             return self._create_sync_response(
@@ -122,8 +128,8 @@ class ProjectController:
         """Update task and sync with Odoo"""
         try:
             return await self.odoo.execute_kw(
-                "project.task",
-                "write",
+                ModelName.TASK,
+                Method.WRITE,
                 args=[task_id],
                 kwargs=task_data.model_dump(exclude=None),
             )
@@ -140,8 +146,8 @@ class ProjectController:
         try:
             timesheet_data.task_id = task_id
             timesheet_id = await self.odoo.execute_kw(
-                model="account.analytic.line",
-                method="create",
+                model=ModelName.ANALYTIC_LINE,
+                method=Method.CREATE,
                 args=[timesheet_data.model_dump(exclude=None)],
             )
             self.logger.info(
@@ -184,12 +190,12 @@ class ProjectController:
                     "datas": file_content_base64,  # Base64 encoded file content
                     "mimetype": file_info["content_type"],
                     "type": "binary",
-                    "res_model": file_info.get("res_model", "project.project"),
+                    "res_model": file_info.get("res_model", ModelName.PROJECT),
                     "res_id": file_info.get("res_id", 0),
                 },
             )
             attachment_id = await self.odoo.execute_kw(
-                model="ir.attachment", method="create", args=[values]
+                model=ModelName.ATTACHMENT, method=Method.CREATE, args=[values]
             )
             # In a real implementation, you might return a pre-signed S3 URL
             # For now, we'll return a mock upload URL
@@ -210,8 +216,8 @@ class ProjectController:
             # Transform frontend task data to Odoo format
             task_data.project_id = project_id
             task_id = await self.odoo.execute_kw(
-                model="project.task",
-                method="create",
+                model=ModelName.TASK,
+                method=Method.CREATE,
                 args=[task_data.model_dump(exclude=None)],
             )
             self.logger.info(
@@ -240,7 +246,10 @@ class ProjectController:
             domain = [("id", "=", task_id)]
             kwargs = {"fields": task_fields}
             task_data = await self.odoo.execute_kw(
-                model="project.task", method="search_read", args=[domain], kwargs=kwargs
+                model=ModelName.TASK,
+                method=Method.SEARCH_READ,
+                args=[domain],
+                kwargs=kwargs,
             )
             if not task_data:
                 return {}
@@ -268,23 +277,23 @@ class ProjectController:
                 blocked_by_task_id = (
                     task["depend_on_ids"][0] if task["depend_on_ids"] else None
                 )
-            task = {
-                "id": task.get("id"),
-                "name": task.get("name"),
-                "project_id": task.get("project_id")[0],
-                "description": task.get("description"),
-                "progress": task.get("progress", 0),
-                "assignees": assignees,
-                "tags": tags,
-                "blocked_by_task_id": blocked_by_task_id,
-                "checklist": [],  # Odoo doesn't have built-in checklist
-                "planned_start": task.get("planned_date_begin"),
-                "planned_stop": task.get("planned_date_end"),
-                "real_duration_seconds": int(task.get("effective_hours", 0) * 3600),
-                "timer_running": task.get("is_timer_running", False),
-                "subtasks": [],  # Would need recursive call for subtasks
-                "files": [],  # Would need to fetch task files
-            }
+            task = ProjectTaskSchema(
+                id=task.get("id"),
+                name=task.get("name"),
+                project_id=task.get("project_id")[0],
+                # description= task.get("description"),
+                progress=task.get("progress", 0),
+                assignees=assignees,
+                tags=tags,
+                blocked_by_task_id=blocked_by_task_id,
+                # checklist= [],  # Odoo doesn't have built-in checklist
+                planned_start=task.get("planned_date_begin"),
+                planned_stop=task.get("planned_date_end"),
+                real_duration_seconds=int(task.get("effective_hours", 0) * 3600),
+                timer_running=task.get("is_timer_running", False),
+                # subtasks= [],  # Would need recursive call for subtasks
+                # files= [],  # Would need to fetch task files
+            )
 
             if not task:
                 raise HTTPException(
@@ -305,8 +314,8 @@ class ProjectController:
         """Update project and sync with Odoo"""
         try:
             return await self.odoo.execute_kw(
-                "project.project",
-                "write",
+                ModelName.PROJECT,
+                Method.WRITE,
                 args=[project_id],
                 kwargs=project_data.model_dump(exclude_unset=True),
             )
@@ -324,7 +333,10 @@ class ProjectController:
             domain = [("project_id", "=", project_id)]
             kwargs = {"fields": task_fields}
             project_tasks = await self.odoo.execute_kw(
-                model="project.task", method="search_read", args=[domain], kwargs=kwargs
+                model=ModelName.TASK,
+                method=Method.SEARCH_READ,
+                args=[domain],
+                kwargs=kwargs,
             )
             if not project_tasks:
                 return []
@@ -348,7 +360,8 @@ class ProjectController:
                 tags = []
                 if task.get("tag_ids"):
                     tags = [
-                        tag.name for tag in self.get_tag(tag_ids=task.get("tag_ids"))
+                        tag.name
+                        for tag in await self.get_tag(tag_ids=task.get("tag_ids"))
                     ]
 
                 # Get blocking tasks
@@ -359,32 +372,31 @@ class ProjectController:
                     )
 
                 transformed_tasks.append(
-                    {
-                        "id": task["id"],
-                        "name": task["name"],
-                        "project_id": project_id,
+                    ProjectTaskSchema(
+                        id=task["id"],
+                        name=task["name"],
+                        project_id=project_id,
+                        status=task["state"],
                         # "description": task.get("description"),
-                        "progress": task.get("progress", 0),
-                        "assignees": assignees,
-                        "tags": tags,
-                        "blocked_by_task_id": blocked_by_task_id,
-                        "checklist": [],  # Odoo doesn't have built-in checklist
-                        "planned_start": task.get("planned_date_begin"),
-                        "planned_stop": task.get("planned_date_end"),
-                        "real_duration_seconds": int(
+                        progress=task.get("progress", 0),
+                        assignees=assignees,
+                        tags=tags,
+                        blocked_by_task_id=blocked_by_task_id,
+                        checklist=[],  # Odoo doesn't have built-in checklist
+                        planned_start=task.get("planned_date_begin"),
+                        planned_stop=task.get("planned_date_end"),
+                        real_duration_seconds=int(
                             task.get("effective_hours", 0) * 3600
                         ),
-                        "timer_running": task.get("is_timer_running", False),
-                        "subtasks": [],  # Would need recursive call for subtasks
-                        "files": [],  # Would need to fetch task files
-                    }
+                        timer_running=task.get("is_timer_running", False),
+                        subtasks=[],  # Would need recursive call for subtasks
+                        files=[],  # Would need to fetch task files
+                    )
                 )
 
             return transformed_tasks
-        except Exception as e:
-            self.logger.error(
-                "Failed to fetch project tasks", project_id=project_id, error=str(e)
-            )
+        except Exception as err:
+            self.logger.error("Failed to fetch project tasks", error=str(err))
             return []
 
     async def _get_project_files(self, project_id: int) -> List[Dict]:
@@ -398,9 +410,9 @@ class ProjectController:
             ]
             kwargs = {"fields": attachment_fiels}
             attachments = await self.odoo.execute_kw(
-                model="ir.attachment",
-                method="search_read",
-                args=domain,
+                model=ModelName.ATTACHMENT,
+                method=Method.SEARCH_READ,
+                args=[domain],
                 kwargs=kwargs,
             )
             files = []
@@ -439,8 +451,8 @@ class ProjectController:
             domain = [("id", "=", project_id)]
             kwargs = {"fields": project_fields}
             project_data = await self.odoo.execute_kw(
-                model="project.project",
-                method="search_read",
+                model=ModelName.PROJECT,
+                method=Method.SEARCH_READ,
                 args=[domain],
                 kwargs=kwargs,
             )
@@ -466,28 +478,26 @@ class ProjectController:
 
             # Get project files
             files = await self._get_project_files(project_id)
-
-            return {
-                "id": project["id"],
-                "name": project["name"],
-                "category": project.get("category_id", [1, "General"])[1],
-                "project_color": str(project.get("color", "#000000")),
-                "priority": project.get("priority", "normal"),
-                "team": team,
-                "allocated_hours": project.get("allocated_hours", 0.0),
-                "deadline": project.get("date_deadline"),
-                "progress": project.get("progress", 0),
-                "sales_order": (
+            return ProjectSchema(
+                id=project["id"],
+                name=project["name"],
+                category=project.get("category_id", [1, "General"])[1],
+                project_color=str(project.get("color", "#000000")),
+                priority=project.get("priority", "normal"),
+                team=team,
+                allocated_hours=project.get("allocated_hours", 0.0),
+                deadline=project.get("date_deadline"),
+                progress=project.get("progress", 0),
+                sales_order=(
                     project.get("sale_order_id", [0, ""])[1]
                     if project.get("sale_order_id")
                     else None
                 ),
-                "item_number": project.get("item_number"),
-                "description": project.get("description"),
-                "tasks": tasks,
-                "files": files,
-            }
-
+                item_number=project.get("item_number"),
+                description=project.get("description"),
+                tasks=tasks,
+                files=files,
+            )
         except Exception as e:
             self.logger.error(
                 "Failed to fetch project", project_id=project_id, error=str(e)
@@ -508,7 +518,10 @@ class ProjectController:
                 domain = [("name", "ilike", f"%{search}%")]
             kwargs = {"offset": skip, "limit": limit}
             project_list = await self.get_project_ids(
-                model="project.project", method="search", domain=domain, kwargs=kwargs
+                model=ModelName.PROJECT,
+                method=Method.SEARCH,
+                domain=domain,
+                kwargs=kwargs,
             )
             # Get full details for each project
             full_projects = []
@@ -518,6 +531,7 @@ class ProjectController:
                     full_projects.append(full_project)
             return full_projects
         except Exception as e:
+            self.logger.error("Error : %s", e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to fetch project dashboard: {str(e)}",

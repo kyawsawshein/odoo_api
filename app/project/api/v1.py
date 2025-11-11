@@ -18,7 +18,7 @@ from app.project.models.model import (
     TaskUpdate,
     TimesheetCreate,
 )
-from app.project.schemas.project import ProjectSchema, CreateProjectTask
+from app.project.schemas.project import ProjectSchema, CreateProjectTask, ProjectTaskSchema
 
 logger = structlog.get_logger()
 
@@ -122,7 +122,7 @@ async def get_project_tasks_from_frontend(
     )
 
 
-@router.get(Route.task, response_model=dict)
+@router.get(Route.task, response_model=ProjectTaskSchema)
 async def get_project_task_from_frontend(
     task_id: int,
     odoo_connection=Depends(get_session_odoo_connection),
