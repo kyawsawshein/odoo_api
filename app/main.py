@@ -1,7 +1,7 @@
 """Main FastAPI application entry point"""
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
@@ -81,7 +81,7 @@ dependency.db = ConfigureAsyncpg(
     app,
     settings.asyncpg_dsn,
     db_code=settings.POSTGRES_CODE,
-    # **settings.POSTGRES_CONN_OPTION
+    **settings.POSTGRES_CONN_OPTION
 )
 odoo_auth_requirements = OdooAuthRequirements(
     url=settings.ODOO_URL,

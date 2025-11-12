@@ -15,9 +15,6 @@ from app.auth.schemas.schemas import OdooAuthResponse, SyncResponse
 from app.auth.session_auth import require_odoo_session
 from app.auth.utils import (
     create_access_token,
-    generate_api_token,
-    get_password_hash,
-    verify_password,
     verify_token,
 )
 from app.config import settings
@@ -31,7 +28,6 @@ router = APIRouter()
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
     """Login and get access token using .env credentials"""
     # Verify username matches API_USER from .env
-    print("token auth", form_data)
     if form_data.username != settings.API_USER:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

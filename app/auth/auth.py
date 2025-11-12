@@ -1,11 +1,10 @@
 import logging
 import time
 from datetime import datetime, timezone
-from typing import List, Optional
 
 import jwt
 import pydantic
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import BaseModel
 

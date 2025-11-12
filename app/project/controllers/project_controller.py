@@ -25,7 +25,7 @@ from app.project.models.model import (
     User,
 )
 from app.project.schemas.project import (
-    CreateProjectTask,
+    CreateProjectTaskSchema,
     ProjectSchema,
     ProjectTaskSchema,
 )
@@ -209,7 +209,7 @@ class ProjectController:
             )
 
     async def create_task(
-        self, project_id: int, task_data: CreateProjectTask
+        self, project_id: int, task_data: CreateProjectTaskSchema
     ) -> SyncResponse:
         """Create task in project and sync with Odoo"""
         try:

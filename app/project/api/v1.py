@@ -18,7 +18,7 @@ from app.project.models.model import (
     TaskUpdate,
     TimesheetCreate,
 )
-from app.project.schemas.project import ProjectSchema, CreateProjectTask, ProjectTaskSchema
+from app.project.schemas.project import ProjectSchema, CreateProjectTaskSchema, ProjectTaskSchema
 
 logger = structlog.get_logger()
 
@@ -60,7 +60,7 @@ async def get_project_dashboard(
 @router.post(Route.project_task, response_model=SyncResponse)
 async def create_project_task(
     project_id: int,
-    task_data: CreateProjectTask,
+    task_data: CreateProjectTaskSchema,
     odoo_connection=Depends(get_session_odoo_connection),
     db_connection=Depends(db.connection),
 ):

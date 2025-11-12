@@ -58,7 +58,7 @@ class ProjectTask(BaseModel):
 
 
 # Task (recursive, with dependencies)
-class CreateProjectTask(BaseModel):
+class CreateProjectTaskData(BaseModel):
     name: str
     description: Optional[str] = None
     project_id: Optional[int] = None

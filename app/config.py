@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
     POSTGRES_PORT: str
-    # POSTGRES_CONN_OPTION: dict
+    POSTGRES_CONN_OPTION: dict
     DATABASE_URI: Optional[str] = None
 
     @property

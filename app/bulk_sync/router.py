@@ -7,13 +7,13 @@ from app.bulk_sync.models.model import (
     BulkSyncRequest,
     BulkSyncResponse,
 )
-from app.auth.router import get_current_user
+from app.api.v1 import get_current_user
 from app.auth.schemas.schemas import User as UserSchema
 
 from app.kafka.producer import KafkaProducer
 
 # from app.cache.redis_client import redis_client
-from odoo_api.app.core.database import get_db
+from app.auth.session_auth import get_odoo_session_user, get_session_odoo_connection
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,7 +28,7 @@ async def bulk_sync(
     request: BulkSyncRequest,
     background_tasks: BackgroundTasks,
     current_user: UserSchema = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
+    db: AsyncSession = Depends(get_session_odoo_connection),
 ):
     """Bulk sync multiple entities with Odoo"""
     try:

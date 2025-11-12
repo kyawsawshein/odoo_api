@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 from app.auth.api.v1 import get_current_user, validate_token
 from app.auth.models.models import User
-from app.core.simple_logger import tail_logs, get_log_files, logger
+from app.core.logger import tail_logs, get_log_files, logger
 
 PREFIX = "/logs"
 TAG_NAME = "Logs"
