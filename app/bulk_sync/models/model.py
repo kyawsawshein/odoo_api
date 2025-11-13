@@ -178,13 +178,13 @@ class SyncResponse(BaseModel):
 class BulkSyncRequest(BaseModel):
     """Bulk synchronization request model"""
 
-    contacts: List[ContactCreate] = Field(default_factory=list)
-    products: List[ProductCreate] = Field(default_factory=list)
+    # contacts: List[ContactCreate] = Field(default_factory=list)
+    # products: List[ProductCreate] = Field(default_factory=list)
     inventory: List[InventoryCreate] = Field(default_factory=list)
-    purchase_orders: List[PurchaseOrderCreate] = Field(default_factory=list)
-    sale_orders: List[SaleOrderCreate] = Field(default_factory=list)
-    deliveries: List[DeliveryCreate] = Field(default_factory=list)
-    accounting_moves: List[AccountingMoveCreate] = Field(default_factory=list)
+    # purchase_orders: List[PurchaseOrderCreate] = Field(default_factory=list)
+    # sale_orders: List[SaleOrderCreate] = Field(default_factory=list)
+    # deliveries: List[DeliveryCreate] = Field(default_factory=list)
+    # accounting_moves: List[AccountingMoveCreate] = Field(default_factory=list)
 
 
 class BulkSyncResponse(BaseModel):

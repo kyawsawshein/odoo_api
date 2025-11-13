@@ -3,19 +3,16 @@
 # from typing import List, Optional
 
 import structlog
-from app.bulk_sync.models.model import (
-    BulkSyncRequest,
-    BulkSyncResponse,
-)
-from app.api.v1 import get_current_user
-from app.auth.schemas.schemas import User as UserSchema
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
-from app.kafka.producer import KafkaProducer
+from app.api.v1 import get_current_user
+from app.auth.models.models import User
 
 # from app.cache.redis_client import redis_client
 from app.auth.session_auth import get_odoo_session_user, get_session_odoo_connection
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from app.bulk_sync.models.model import BulkSyncRequest, BulkSyncResponse
+from app.dependency import db
+from app.kafka.producer import kafka_producer
 
 logger = structlog.get_logger()
 
@@ -27,16 +24,17 @@ router = APIRouter()
 async def bulk_sync(
     request: BulkSyncRequest,
     background_tasks: BackgroundTasks,
-    current_user: UserSchema = Depends(get_current_user),
-    db: AsyncSession = Depends(get_session_odoo_connection),
+    current_user: User = Depends(get_odoo_session_user),
+    db_connection=Depends(db.connection),
 ):
     """Bulk sync multiple entities with Odoo"""
     try:
+        print("Kafka producer: ", kafka_producer)
         # Send to Kafka for async bulk processing
         background_tasks.add_task(
-            KafkaProducer.send_message,
+            kafka_producer.send_message,
             "odoo-bulk-sync",
-            {"user_id": current_user.id, "data": request.dict()},
+            {"user_id": current_user.id, "data": request.model_dump_json()},
         )
 
         return BulkSyncResponse(

@@ -1,6 +1,7 @@
-import typing
-import time
 import logging
+import time
+import typing
+
 import asyncpg
 from fastapi import FastAPI
 from .logger import DEBUG_QUALNAME

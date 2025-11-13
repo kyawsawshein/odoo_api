@@ -1,12 +1,12 @@
 """Kafka producer for sending async messages"""
 
 import json
-from typing import Dict, Any
-from kafka import KafkaProducer
+from typing import Any, Dict
+
 import structlog
+from kafka import KafkaProducer as PythonKafkaProducer
 
 from app.config import settings
-
 
 logger = structlog.get_logger()
 
@@ -27,7 +27,7 @@ class KafkaProducer:
     def _connect(self):
         """Connect to Kafka broker"""
         try:
-            self.producer = KafkaProducer(
+            self.producer = PythonKafkaProducer(
                 bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
                 value_serializer=lambda v: json.dumps(v).encode("utf-8"),
                 key_serializer=lambda v: v.encode("utf-8") if v else None,
@@ -38,18 +38,14 @@ class KafkaProducer:
             )
             logger.info("Kafka producer connected successfully")
         except Exception as e:
-            logger.error("Failed to connect to Kafka", error=str(e))
+            logger.exception("Failed to connect to Kafka")
             raise
-
-    @classmethod
-    def get_instance(cls):
-        """Get singleton instance"""
-        if cls._instance is None:
-            cls._instance = KafkaProducer()
-        return cls._instance
 
     async def send_message(self, topic: str, message: Dict[str, Any], key: str = None):
         """Send message to Kafka topic"""
+        if not self.producer:
+            logger.error("Kafka producer is not connected.")
+            return False
         try:
             future = self.producer.send(topic=topic, value=message, key=key)
 
@@ -98,4 +94,4 @@ class KafkaProducer:
 
 
 # Global Kafka producer instance
-kafka_producer = KafkaProducer.get_instance()
+kafka_producer = KafkaProducer()

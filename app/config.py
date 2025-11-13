@@ -68,9 +68,7 @@ class Settings(BaseSettings):
     ODOO_JWT_AUTHZ_TIMEOUT: int
 
     # Kafka Configuration
-    KAFKA_BOOTSTRAP_SERVERS: str = Field(
-        default="localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS"
-    )
+    KAFKA_BOOTSTRAP_SERVERS: str = Field(default="localhost:9092", env="KAFKA_BOOTSTRAP_SERVERS")
     KAFKA_GROUP_ID: str = Field(default="odoo-api-group", env="KAFKA_GROUP_ID")
 
     # Rate Limiting
