@@ -53,7 +53,6 @@ class ProjectController:
         success: bool,
         message: str,
         odoo_id: Optional[int] = None,
-        local_id: Optional[int] = None,
         errors: List[str] = None,
     ) -> SyncResponse:
         """Create standardized sync response"""
@@ -64,7 +63,6 @@ class ProjectController:
             success=success,
             message=message,
             odoo_id=odoo_id,
-            local_id=local_id,
             errors=errors,
         )
 

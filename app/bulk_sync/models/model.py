@@ -164,17 +164,6 @@ class AccountingMove(AccountingMoveBase):
     class Config:
         from_attributes = True
 
-
-class SyncResponse(BaseModel):
-    """Synchronization response model"""
-
-    success: bool
-    message: str
-    odoo_id: Optional[int] = None
-    local_id: Optional[int] = None
-    errors: List[str] = Field(default_factory=list)
-
-
 class BulkSyncRequest(BaseModel):
     """Bulk synchronization request model"""
 

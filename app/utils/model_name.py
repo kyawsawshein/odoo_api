@@ -3,6 +3,7 @@ class Method:
     WRITE = "write"
     SEARCH = "search"
     SEARCH_READ = "search_read"
+    BROWSE = "browse"
 
 
 

@@ -5,6 +5,7 @@ from typing import List, Optional
 import structlog
 from fastapi import APIRouter, Depends
 
+from app.api.models.models import SyncResponse
 from app.auth.api.v1 import validate_token
 from app.auth.session_auth import get_session_odoo_connection
 from app.dependency import db
@@ -80,5 +81,41 @@ async def get_workorder(
 ):
     """Get specific task details from frontend"""
     return await MRPController(odoo_connection, db_connection).get_workorder(
+        workcenter_id
+    )
+
+
+@router.get(Route.start_workorder, response_model=SyncResponse)
+async def start_workorder(
+    workcenter_id: int,
+    odoo_connection=Depends(get_session_odoo_connection),
+    db_connection=Depends(db.connection),
+):
+    """Set to start workorder."""
+    return await MRPController(odoo_connection, db_connection).start_workorder(
+        workcenter_id
+    )
+
+
+@router.get(Route.pending_workorder, response_model=SyncResponse)
+async def pending_workorder(
+    workcenter_id: int,
+    odoo_connection=Depends(get_session_odoo_connection),
+    db_connection=Depends(db.connection),
+):
+    """Set to pending workorder."""
+    return await MRPController(odoo_connection, db_connection).pending_workorder(
+        workcenter_id
+    )
+
+
+@router.get(Route.end_workorder, response_model=SyncResponse)
+async def end_workorder(
+    workcenter_id: int,
+    odoo_connection=Depends(get_session_odoo_connection),
+    db_connection=Depends(db.connection),
+):
+    """Set to end workorder."""
+    return await MRPController(odoo_connection, db_connection).end_workorder(
         workcenter_id
     )

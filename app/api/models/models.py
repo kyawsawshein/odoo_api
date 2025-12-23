@@ -13,5 +13,4 @@ class SyncResponse(BaseModel):
     success: bool
     message: str
     odoo_id: Optional[int] = None
-    local_id: Optional[int] = None
     errors: List[str] = Field(default_factory=list)

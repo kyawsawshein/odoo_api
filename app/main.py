@@ -11,15 +11,8 @@ from app.core.asyncpg_connect import ConfigureAsyncpg
 from app.core.logger import logger
 from app.dependency import OdooAuthRequirements, ConfigureOdoo, SessionOdooConnection
 
-# Import routers
 from app.auth.api.v1 import router as auth_router
 from app.api import router as api_router
-from app.auth.api.v1 import odoo_router
-from app.project.api.v1 import router as frontend_project_router
-from app.logging.api.v1 import router as logging_router
-
-# from app.bulk_sync.router import router as bluk_router
-from app.mrp.api.v1 import router as mrp_router
 
 
 def create_app() -> FastAPI:
@@ -105,8 +98,17 @@ dependency.odoo = ConfigureOdoo(
 # Initialize session-based Odoo connection
 dependency.session_odoo = SessionOdooConnection(odoo_auth_requirements)
 
-api_prefix = "/api/v1"
 
+# Import routers
+from app.auth.api.v1 import odoo_router
+from app.project.api.v1 import router as frontend_project_router
+from app.logging.api.v1 import router as logging_router
+
+# from app.bulk_sync.router import router as bluk_router
+from app.mrp.api.v1 import router as mrp_router
+
+
+api_prefix = "/api/v1"
 
 # Include routers
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
