@@ -5,6 +5,8 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 from decimal import Decimal
 
+from app.api.models.models import SyncResponse
+
 
 class InventoryBase(BaseModel):
     """Base inventory model"""
@@ -163,6 +165,7 @@ class AccountingMove(AccountingMoveBase):
 
     class Config:
         from_attributes = True
+
 
 class BulkSyncRequest(BaseModel):
     """Bulk synchronization request model"""

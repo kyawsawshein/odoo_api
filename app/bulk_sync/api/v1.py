@@ -6,21 +6,29 @@ import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
 from app.api.v1 import get_current_user
+from app.auth.api.v1 import validate_token
 from app.auth.models.models import User
 
 # from app.cache.redis_client import redis_client
 from app.auth.session_auth import get_odoo_session_user, get_session_odoo_connection
+from app.bulk_sync.api.route_name import Route
 from app.bulk_sync.models.model import BulkSyncRequest, BulkSyncResponse
 from app.dependency import db
+from app.kafka.consumer import create_odoo_consumer
 from app.kafka.producer import kafka_producer
 
 logger = structlog.get_logger()
 
 router = APIRouter()
+router = APIRouter(
+    prefix="/bulk",
+    tags=["Bulk"],
+    dependencies=[Depends(validate_token)],
+)
 
 
 # Bulk Operations
-@router.post("/bulk-sync", response_model=BulkSyncResponse, tags=["bulk"])
+@router.post(Route.bluk_sync, response_model=BulkSyncResponse)
 async def bulk_sync(
     request: BulkSyncRequest,
     background_tasks: BackgroundTasks,
