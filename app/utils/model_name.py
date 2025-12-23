@@ -13,4 +13,5 @@ class ModelName:
     TAG = "project.tags"
     ATTACHMENT = "ir.attachment"
     ANALYTIC_LINE = "account.analytic.line"
-
+    PRODUCTION = "mrp.production"
+    WORKORDER = "mrp.workorder"

@@ -7,8 +7,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      # - DATABASE_URL=postgresql+asyncpg://odoo:admin@db:5432/odoo_api
-      # - REDIS_URL=redis://redis:6379/0
+      - REDIS_URL=redis://redis:6379/0
       - ODOO_URL=${ODOO_URL}
       # - ODOO_DATABASE=${ODOO_DATABASE}
       # - ODOO_USERNAME=${ODOO_USERNAME}
@@ -17,8 +16,7 @@ services:
       - SECRET_KEY=${SECRET_KEY}
       - DEBUG=${DEBUG}
     # depends_on:
-      # - postgres
-      # - redis
+      - redis
       # - kafka
     volumes:
       - .:/app
@@ -26,23 +24,6 @@ services:
     restart: always
     networks:
       - odoo19_odoo19-net
-
-  # PostgreSQL Database
-  # postgres:
-  #   image: postgres:15
-  #   environment:
-  #     - POSTGRES_DB=odoo_api
-  #     - POSTGRES_USER=odoo_api_user
-  #     - POSTGRES_PASSWORD=odoo_api_password
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "pg_isready -U odoo_api_user -d odoo_api"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 5
 
   # Redis Cache
   redis:
