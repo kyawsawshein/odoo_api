@@ -11,6 +11,16 @@ from app.core.asyncpg_connect import ConfigureAsyncpg
 from app.core.logger import logger
 from app.dependency import OdooAuthRequirements, ConfigureOdoo, SessionOdooConnection
 
+# Import routers
+from app.auth.api.v1 import router as auth_router
+from app.api import router as api_router
+from app.auth.api.v1 import odoo_router
+from app.project.api.v1 import router as frontend_project_router
+from app.logging.api.v1 import router as logging_router
+
+# from app.bulk_sync.router import router as bluk_router
+from app.mrp.api.v1 import router as mrp_router
+
 
 def create_app() -> FastAPI:
     """Create and configure FastAPI application"""
@@ -41,17 +51,14 @@ def create_app() -> FastAPI:
     async def startup_event():
         # Initialize logging
         logger.info("Application starting up")
-        
         # await init_db()
         # Initialize other services like Redis, Kafka connections
-        pass
 
     @app.on_event("shutdown")
     async def shutdown_event():
         logger.info("Application shutting down")
         # await close_db()
         # Close other connections
-        pass
 
     # Health check endpoint
     @app.get("/health", tags=["health"])
@@ -81,7 +88,7 @@ dependency.db = ConfigureAsyncpg(
     app,
     settings.asyncpg_dsn,
     db_code=settings.POSTGRES_CODE,
-    **settings.POSTGRES_CONN_OPTION
+    **settings.POSTGRES_CONN_OPTION,
 )
 odoo_auth_requirements = OdooAuthRequirements(
     url=settings.ODOO_URL,
@@ -99,15 +106,6 @@ dependency.odoo = ConfigureOdoo(
 dependency.session_odoo = SessionOdooConnection(odoo_auth_requirements)
 
 api_prefix = "/api/v1"
-
-# Import routers
-from app.auth.api.v1 import router as auth_router
-from app.api import router as api_router
-from app.auth.api.v1 import odoo_router
-from app.project.api.v1 import router as frontend_project_router
-from app.logging.api.v1 import router as logging_router
-# from app.bulk_sync.router import router as bluk_router
-from app.mrp.api.v1 import router as mrp_router
 
 
 # Include routers

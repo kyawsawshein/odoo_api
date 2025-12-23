@@ -12,7 +12,7 @@ from app.config import settings
 logger = structlog.get_logger()
 
 
-class KafkaConsumer:
+class PythonKafkaConsumer:
     """Kafka consumer for processing async messages"""
 
     def __init__(self, group_id: str = None):

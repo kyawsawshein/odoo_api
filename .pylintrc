@@ -3,8 +3,6 @@
 ignore=CVS,.git,__pycache__,build,dist,odoo,tests
 ignore-patterns=__init__.py
 
-# Allow loading of Odoo specific checkers (if using pylint-odoo)
-load-plugins=pylint_odoo
 
 [MESSAGES CONTROL]
 # Disable some errors that are noisy in Odoo context
@@ -23,7 +21,6 @@ disable=
     W0703, # broad-except
     C0411, # wrong-import-order
     W1203, # logging-fstring-interpolation (Odoo uses %s)
-    C0330, # bad-continuation (pylint formatting conflict)
     W0104, # Statement seems to have no effect (pointless-statement)
     W0223, # Method 'onchange' is abstract in class 'BaseModel' but is not overridden in child class 'SuccessMessage' (abstract-method)
 
@@ -49,10 +46,3 @@ max-attributes=15
 
 [TYPECHECK]
 generated-members=fields.*,models.*,api.*,self.env
-
-[ODOO]
-# Odoo-specific options (if pylint-odoo installed)
-odoo-rcfile=.pylintrc
-odoo-licence=LGPL-3
-odoo-max-line-length=100
-odoo-method-required-super=__init__,create,write,unlink

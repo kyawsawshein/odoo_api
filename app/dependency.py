@@ -1,14 +1,14 @@
 
-import logging
+# import logging
 from xmlrpc.client import ServerProxy
 from typing import Any, List, Dict
-from asyncpg import Connection
+# from asyncpg import Connection
 from pydantic import BaseModel
 from fastapi import FastAPI, Request
 
 
 # from odoo.core.config import settings
-from app.core.logger import logger
+# from app.core.logger import logger
 
 # from odoo.core.exceptions import CustomHTTPException
 from app.odoo.client import session_odoo_client
