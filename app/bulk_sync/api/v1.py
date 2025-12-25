@@ -5,16 +5,11 @@
 import structlog
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 
-from app.api.v1 import get_current_user
-from app.auth.api.v1 import validate_token
+from app.auth.api.v1 import require_odoo_session, validate_token
 from app.auth.models.models import User
-
-# from app.cache.redis_client import redis_client
-from app.auth.session_auth import get_odoo_session_user, get_session_odoo_connection
 from app.bulk_sync.api.route_name import Route
 from app.bulk_sync.models.model import BulkSyncRequest, BulkSyncResponse
 from app.dependency import db
-from app.kafka.consumer import create_odoo_consumer
 from app.kafka.producer import kafka_producer
 
 logger = structlog.get_logger()
@@ -32,13 +27,15 @@ router = APIRouter(
 async def bulk_sync(
     request: BulkSyncRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_odoo_session_user),
-    db_connection=Depends(db.connection),
+    current_user: User = Depends(require_odoo_session),
 ):
     """Bulk sync multiple entities with Odoo"""
     try:
-        print("Kafka producer: ", kafka_producer)
         # Send to Kafka for async bulk processing
+        if kafka_producer.producer is None:
+            # raise Exception("Kafka producer is not initialized")
+            kafka_producer._connect()
+
         background_tasks.add_task(
             kafka_producer.send_message,
             "odoo-bulk-sync",

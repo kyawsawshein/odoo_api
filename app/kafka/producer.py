@@ -1,34 +1,42 @@
 """Kafka producer for sending async messages"""
 
 import json
+import os
 from typing import Any, Dict
 
 import structlog
-from kafka import KafkaProducer as PythonKafkaProducer
+from kafka import KafkaProducer
 
 from app.config import settings
 
 logger = structlog.get_logger()
 
 
-class KafkaProducer:
+class PythonKafkaProducer:
     """Kafka producer for async message processing"""
 
     _instance = None
 
     def __init__(self):
-        if KafkaProducer._instance is not None:
+        if PythonKafkaProducer._instance is not None:
             raise Exception("This class is a singleton!")
-        else:
-            self.producer = None
-            self._connect()
-            KafkaProducer._instance = self
+        self.producer = None
+        self._connect()
+        PythonKafkaProducer._instance = self
 
     def _connect(self):
         """Connect to Kafka broker"""
         try:
-            self.producer = PythonKafkaProducer(
+            print(
+                "#= ================== kafka bootstrap server",
+                settings.KAFKA_BOOTSTRAP_SERVERS,
+            )
+            self.producer = KafkaProducer(
                 bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
+                # security_protocol="SASL_PLAINTEXT",
+                # sasl_mechanism="PLAIN",
+                # sasl_plain_username=os.getenv("KAFKA_SASL_USERNAME", "client"),
+                # sasl_plain_password=os.getenv("KAFKA_SASL_PASSWORD", "client-secret"),
                 value_serializer=lambda v: json.dumps(v).encode("utf-8"),
                 key_serializer=lambda v: v.encode("utf-8") if v else None,
                 acks="all",
@@ -36,10 +44,10 @@ class KafkaProducer:
                 batch_size=16384,
                 linger_ms=10,
             )
-            logger.info("Kafka producer connected successfully")
+            logger.info("Kafka producer connected successfully.")
         except Exception as e:
-            logger.exception("Failed to connect to Kafka")
-            raise
+            logger.exception("Failed to connect to Kafka", error=str(e))
+            # raise
 
     async def send_message(self, topic: str, message: Dict[str, Any], key: str = None):
         """Send message to Kafka topic"""
@@ -94,4 +102,4 @@ class KafkaProducer:
 
 
 # Global Kafka producer instance
-kafka_producer = KafkaProducer()
+kafka_producer = PythonKafkaProducer()

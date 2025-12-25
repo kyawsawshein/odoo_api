@@ -19,10 +19,10 @@ class RedisClient:
     def __init__(self):
         if RedisClient._instance is not None:
             raise Exception("This class is a singleton!")
-        else:
-            self.client = None
-            self._connect()
-            RedisClient._instance = self
+
+        self.client = None
+        self._connect()
+        RedisClient._instance = self
 
     def _connect(self):
         """Connect to Redis server"""

@@ -1,13 +1,15 @@
 """Kafka consumer for processing async messages"""
 
 import json
+
 # import asyncio
-from typing import Dict, Any, Callable
-from kafka import KafkaConsumer
+import os
+from typing import Any, Callable, Dict
+
 import structlog
+from kafka import KafkaConsumer
 
 from app.config import settings
-
 
 logger = structlog.get_logger()
 
@@ -23,9 +25,16 @@ class PythonKafkaConsumer:
 
     def _connect(self):
         """Connect to Kafka broker"""
+        logger.error("Connect to Kafka")
+        logger.info("Kafka boostrap server %s", settings.KAFKA_BOOTSTRAP_SERVERS)
+        logger.info("Kafka group id %s", self.group_id)
         try:
             self.consumer = KafkaConsumer(
                 bootstrap_servers=settings.KAFKA_BOOTSTRAP_SERVERS,
+                # security_protocol="SASL_PLAINTEXT",
+                # sasl_mechanism="PLAIN",
+                # sasl_plain_username=os.getenv("KAFKA_SASL_USERNAME", "client"),
+                # sasl_plain_password=os.getenv("KAFKA_SASL_PASSWORD", "client-secret"),
                 group_id=self.group_id,
                 value_deserializer=lambda v: json.loads(v.decode("utf-8")),
                 key_deserializer=lambda v: v.decode("utf-8") if v else None,
@@ -33,7 +42,7 @@ class PythonKafkaConsumer:
                 enable_auto_commit=True,
                 auto_commit_interval_ms=1000,
             )
-            logger.info("Kafka consumer connected successfully", group_id=self.group_id)
+            # logger.info("Kafka consumer connected successfully", group_id=self.group_id)
         except Exception as e:
             logger.error("Failed to connect to Kafka", error=str(e))
             raise
@@ -179,7 +188,7 @@ class OdooMessageHandler:
 # Create and configure consumer
 def create_odoo_consumer():
     """Create and configure Odoo message consumer"""
-    consumer = KafkaConsumer(group_id="odoo-processors")
+    consumer = PythonKafkaConsumer(group_id="odoo-processors")
     handler = OdooMessageHandler()
 
     # Register handlers for different topics

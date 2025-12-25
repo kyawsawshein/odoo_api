@@ -5,14 +5,13 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
-from app.config import settings
 from app import dependency
+from app.api import router as api_router
+from app.auth.api.v1 import router as auth_router
+from app.config import settings
 from app.core.asyncpg_connect import ConfigureAsyncpg
 from app.core.logger import logger
-from app.dependency import OdooAuthRequirements, ConfigureOdoo, SessionOdooConnection
-
-from app.auth.api.v1 import router as auth_router
-from app.api import router as api_router
+from app.dependency import ConfigureOdoo, OdooAuthRequirements, SessionOdooConnection
 
 
 def create_app() -> FastAPI:
@@ -101,12 +100,10 @@ dependency.session_odoo = SessionOdooConnection(odoo_auth_requirements)
 
 # Import routers
 from app.auth.api.v1 import odoo_router
-from app.project.api.v1 import router as frontend_project_router
-from app.logging.api.v1 import router as logging_router
-
 from app.bulk_sync.api.v1 import router as bluk_router
+from app.logging.api.v1 import router as logging_router
 from app.mrp.api.v1 import router as mrp_router
-
+from app.project.api.v1 import router as frontend_project_router
 
 api_prefix = "/api/v1"
 
@@ -116,8 +113,9 @@ app.include_router(api_router, prefix=api_prefix)
 app.include_router(odoo_router, prefix=api_prefix)
 app.include_router(frontend_project_router, prefix=api_prefix)
 app.include_router(logging_router, prefix=api_prefix)
-app.include_router(bluk_router, prefix=api_prefix)
 app.include_router(mrp_router, prefix=api_prefix)
+
+app.include_router(bluk_router, prefix=api_prefix)
 
 
 if __name__ == "__main__":
