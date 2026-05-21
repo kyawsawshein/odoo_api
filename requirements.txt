@@ -28,7 +28,6 @@ hiredis==3.0.0
 
 # Message Queue
 kafka-python==2.0.2
-confluent-kafka==2.2.0
 
 # GraphQL
 strawberry-graphql==0.215.2
