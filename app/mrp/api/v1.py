@@ -29,10 +29,10 @@ async def get_orders(
     limit: int = 100,
     search: Optional[str] = None,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+    # db_connection=Depends(db.connection),
 ):
     """Get MRP orderd"""
-    return await MRPController(odoo_connection, db_connection).get_orders(
+    return await MRPController(odoo_connection).get_orders(
         skip=skip, limit=limit, search=search
     )
 
@@ -41,20 +41,20 @@ async def get_orders(
 async def get_order(
     order_id: int,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+    # db_connection=Depends(db.connection),
 ):
     """Get MRP order by id"""
-    return await MRPController(odoo_connection, db_connection).get_order(order_id)
+    return await MRPController(odoo_connection).get_order(order_id)
 
 
 @router.get(Route.order_workorder, response_model=List[WorkOrderSchema])
 async def get_order_workorder(
     order_id: int,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+    # db_connection=Depends(db.connection),
 ):
     """Get specific task details from frontend"""
-    return await MRPController(odoo_connection, db_connection).get_order_workorder(
+    return await MRPController(odoo_connection).get_order_workorder(
         order_id
     )
 
@@ -65,10 +65,10 @@ async def get_workorders(
     limit: int = 100,
     search: Optional[str] = None,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+    # db_connection=Depends(db.connection),
 ):
     """Get specific task details from frontend"""
-    return await MRPController(odoo_connection, db_connection).get_workorders(
+    return await MRPController(odoo_connection).get_workorders(
         skip=skip, limit=limit, search=search
     )
 
@@ -77,10 +77,10 @@ async def get_workorders(
 async def get_workorder(
     workcenter_id: int,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+    # db_connection=Depends(db.connection),
 ):
     """Get specific task details from frontend"""
-    return await MRPController(odoo_connection, db_connection).get_workorder(
+    return await MRPController(odoo_connection).get_workorder(
         workcenter_id
     )
 
@@ -89,10 +89,10 @@ async def get_workorder(
 async def start_workorder(
     workcenter_id: int,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+    # db_connection=Depends(db.connection),
 ):
     """Set to start workorder."""
-    return await MRPController(odoo_connection, db_connection).start_workorder(
+    return await MRPController(odoo_connection).start_workorder(
         workcenter_id
     )
 
@@ -101,10 +101,10 @@ async def start_workorder(
 async def pending_workorder(
     workcenter_id: int,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+    # db_connection=Depends(db.connection),
 ):
     """Set to pending workorder."""
-    return await MRPController(odoo_connection, db_connection).pending_workorder(
+    return await MRPController(odoo_connection).pending_workorder(
         workcenter_id
     )
 
@@ -113,9 +113,9 @@ async def pending_workorder(
 async def end_workorder(
     workcenter_id: int,
     odoo_connection=Depends(get_session_odoo_connection),
-    db_connection=Depends(db.connection),
+
 ):
     """Set to end workorder."""
-    return await MRPController(odoo_connection, db_connection).end_workorder(
+    return await MRPController(odoo_connection).end_workorder(
         workcenter_id
     )

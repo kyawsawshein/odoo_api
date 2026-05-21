@@ -76,15 +76,15 @@ def create_app() -> FastAPI:
 
 # Create application instance
 app = create_app()
-dependency.db = ConfigureAsyncpg(
-    app,
-    settings.asyncpg_dsn,
-    db_code=settings.POSTGRES_CODE,
-    **settings.POSTGRES_CONN_OPTION,
-)
+# dependency.db = ConfigureAsyncpg(
+#     app,
+#     settings.asyncpg_dsn,
+#     db_code=settings.POSTGRES_CODE,
+#     **settings.POSTGRES_CONN_OPTION,
+# )
 odoo_auth_requirements = OdooAuthRequirements(
     url=settings.ODOO_URL,
-    database=settings.POSTGRES_DB,
+    database=settings.ODOO_DATABASE,
     user=settings.ODOO_USERNAME,
     password=settings.ODOO_PASSWORD,
 )
@@ -100,10 +100,8 @@ dependency.session_odoo = SessionOdooConnection(odoo_auth_requirements)
 
 # Import routers
 from app.auth.api.v1 import odoo_router
-from app.bulk_sync.api.v1 import router as bluk_router
 from app.logging.api.v1 import router as logging_router
 from app.mrp.api.v1 import router as mrp_router
-from app.project.api.v1 import router as frontend_project_router
 
 api_prefix = "/api/v1"
 
@@ -111,11 +109,8 @@ api_prefix = "/api/v1"
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(api_router, prefix=api_prefix)
 app.include_router(odoo_router, prefix=api_prefix)
-app.include_router(frontend_project_router, prefix=api_prefix)
 app.include_router(logging_router, prefix=api_prefix)
 app.include_router(mrp_router, prefix=api_prefix)
-
-app.include_router(bluk_router, prefix=api_prefix)
 
 
 if __name__ == "__main__":

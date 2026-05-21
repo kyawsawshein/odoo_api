@@ -28,10 +28,8 @@ class MRPController:
     def __init__(
         self,
         odoo_connection,
-        db_connection: asyncpg.connection,
     ):
         self.odoo = odoo_connection
-        self.db = db_connection
         self.logger = logger
 
     async def get_order(self, order_id: int) -> OrderSchema:
