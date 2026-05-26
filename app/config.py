@@ -1,9 +1,33 @@
 """Configuration management for the Odoo FastAPI integration"""
 
+import os
 from typing import Optional
 
 from pydantic import Field
 from pydantic_settings import BaseSettings
+
+# ── Runtime detection ──────────────────────────────────────────────────
+
+IS_VERCEL = bool(os.getenv("VERCEL")) or os.getenv("VERCEL_ENV") is not None
+"""True when running on Vercel's serverless platform."""
+
+# ── Database ───────────────────────────────────────────────────────────
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:postgres@localhost:5432/pochecker",
+)
+
+# ── Uploads / outputs — use /tmp on Vercel (only writable path) ────────
+
+UPLOAD_DIR = "/tmp/uploads" if IS_VERCEL else "uploads"
+OUTPUT_DIR = "/tmp/outputs" if IS_VERCEL else "outputs"
+
+# Ensure directories exist (only meaningful for Docker / local)
+if not IS_VERCEL:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+
 
 
 class Settings(BaseSettings):
@@ -52,6 +76,22 @@ class Settings(BaseSettings):
 
     # Redis Configuration
     REDIS_URL: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
+
+    # pgvector Configuration
+    PG_VECTOR_SERVER: str
+    PG_VECTOR_USER: str
+    PG_VECTOR_PASSWORD: str
+    PG_VECTOR_DB: str
+    PG_VECTOR_PORT: str
+    PG_VECTOR_CONN_OPTION: dict
+    PG_VECTOR_DATABASE_URI: Optional[str] = None
+
+    @property
+    def pg_vector_dsn(self) -> str:
+        """Generate asyncpg DSN from PostgreSQL settings"""
+        if self.PG_VECTOR_DATABASE_URI:
+            return self.PG_VECTOR_DATABASE_URI
+        return f"postgresql://{self.PG_VECTOR_USER}:{self.PG_VECTOR_PASSWORD}@{self.PG_VECTOR_SERVER}:{self.PG_VECTOR_PORT}/{self.PG_VECTOR_DB}"
 
     # Odoo Configuration
     ODOO_URL: str = Field(default="http://localhost:8090", env="ODOO_URL")

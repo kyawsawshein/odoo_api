@@ -101,6 +101,8 @@ dependency.session_odoo = SessionOdooConnection(odoo_auth_requirements)
 # Import routers
 from app.auth.api.v1 import odoo_router
 from app.logging.api.v1 import router as logging_router
+from app.product.api.v1 import router as product_router
+from app.validate.api.v1 import router as validate_router
 from app.mrp.api.v1 import router as mrp_router
 
 api_prefix = "/api/v1"
@@ -110,6 +112,8 @@ app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(api_router, prefix=api_prefix)
 app.include_router(odoo_router, prefix=api_prefix)
 app.include_router(logging_router, prefix=api_prefix)
+app.include_router(validate_router, prefix=api_prefix)
+app.include_router(product_router, prefix=api_prefix)
 app.include_router(mrp_router, prefix=api_prefix)
 
 

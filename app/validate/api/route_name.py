@@ -1,0 +1,10 @@
+class Route:
+    extract_po = "/extract-po"
+    extract_file = "/extract-file"
+    verify_po = "/verify-po"
+    upload_po = "/upload-po"
+    task = "/task/{task_id}"
+    download = "/download/{filename}"
+    cleanup = "/cleanup"
+    health = "/health"
+    sync_products = "/sync-products"

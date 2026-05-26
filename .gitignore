@@ -45,6 +45,7 @@ odoo-data
 .idea/
 .vscode/
 *.code-workspace
+.deepseek
 
 # OS Files
 .DS_Store

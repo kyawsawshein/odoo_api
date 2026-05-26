@@ -47,3 +47,13 @@ isort==5.13.2
 mypy==1.7.1
 
 PyJWT ==2.3.0
+
+# Validate
+pandas
+pdfplumber==0.10.4
+pdfminer.six==20221105
+cryptography==43.0.3
+python-multipart
+aiofiles
+openpyxl
+python-dotenv

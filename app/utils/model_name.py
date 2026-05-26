@@ -9,6 +9,9 @@ class Method:
 
 class ModelName:
     USER = "res.users"
+    PRODUCT_TEMPLATE = "product.template"
+    PRODUCT = "product.product"
+    PRICELIST = "product.pricelist.item"
     PROJECT = "project.project"
     TASK = "project.task"
     TAG = "project.tags"
