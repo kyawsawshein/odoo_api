@@ -7,6 +7,10 @@ __pycache__/
 *.eggs/
 *.log
 
+# Node
+node_modules/
+dist/
+
 # Environment
 .env
 venv/
