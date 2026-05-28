@@ -27,19 +27,6 @@ services:
     networks:
       - odoo19_odoo19-net
 
-  sku_check_web:
-    build: ./sku_check_web
-    container_name: sku_check_web
-    ports:
-      - "5100:5100"
-    volumes:
-      - ./sku_check_web:/app
-      - /app/node_modules
-    depends_on:
-      - api
-    networks:
-      - odoo19_odoo19-net
-
 # volumes:
 #   redis_data:
 
