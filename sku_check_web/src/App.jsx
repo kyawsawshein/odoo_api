@@ -149,6 +149,10 @@ function App() {
   const [markdownReport, setMarkdownReport] = useState(null)
   const [copied, setCopied] = useState(false)
 
+  // ── Sync state
+  const [syncing, setSyncing] = useState(false)
+  const [syncResult, setSyncResult] = useState(null)
+
   // ── Silently fetch gateway JWT on mount ───────────────────────────────
   useEffect(() => {
     getGatewayToken()
@@ -322,6 +326,33 @@ function App() {
     }
   }
 
+  // ── Step 3: Sync products from Odoo ──────────────────────────────────
+
+  const runSync = async () => {
+    try {
+      setSyncing(true)
+      setSyncResult(null)
+
+      const res = await api.post('/api/v1/validate/sync-products', {}, {
+        params: {
+          customer: 'zervi',
+          login: odooUser?.odoo_username,
+        },
+      })
+
+      const d = res.data
+      setSyncResult(
+        `Synced: ${d.product_info_inserted} inserted, ${d.product_info_updated} updated (products); ` +
+        `${d.product_category_inserted} inserted (categories)`
+      )
+    } catch (err) {
+      const detail = err.response?.data?.detail || 'Sync failed'
+      setSyncResult(`Error: ${detail}`)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const copyMarkdown = async () => {
     if (markdownReport) {
       await navigator.clipboard.writeText(markdownReport)
@@ -346,7 +377,6 @@ function App() {
   // ── Show login screen until Odoo auth is complete ─────────────────────
 
   if (authState !== 'logged_in') {
-    console.log('Auth state:', authState)
     return (
       <LoginScreen
         onSubmit={handleOdooLogin}
@@ -366,15 +396,28 @@ function App() {
   return (
     <div style={{ padding: 32, fontFamily: 'system-ui, sans-serif', maxWidth: 1500, margin: '0 auto' }}>
 
-      {/* ── Header with user info + logout ──────────────────────────── */}
+      {/* ── Header with user info + logout + sync ──────────────────── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
         <h1 style={{ fontSize: 22, margin: 0 }}>Customer PO Checker</h1>
-        <div style={{ fontSize: 13, color: '#6b7280' }}>
+        <div style={{ fontSize: 13, color: '#6b7280', display: 'flex', alignItems: 'center', gap: 10 }}>
           Logged in as <b style={{ color: '#374151' }}>{odooUser?.odoo_username}</b>
+          <button
+            onClick={runSync}
+            disabled={syncing}
+            style={{
+              marginLeft: 8, background: syncing ? '#9ca3af' : '#0891b2',
+              border: 'none', borderRadius: 4, padding: '3px 12px',
+              cursor: syncing ? 'not-allowed' : 'pointer',
+              fontSize: 12, color: '#fff', fontWeight: 500,
+            }}
+            title="Pull latest product data from Odoo"
+          >
+            {syncing ? 'Syncing…' : 'Sync Products'}
+          </button>
           <button
             onClick={handleLogout}
             style={{
-              marginLeft: 12, background: 'none', border: '1px solid #d1d5db',
+              background: 'none', border: '1px solid #d1d5db',
               borderRadius: 4, padding: '3px 10px', cursor: 'pointer',
               fontSize: 12, color: '#6b7280',
             }}
@@ -383,6 +426,19 @@ function App() {
           </button>
         </div>
       </div>
+
+      {/* ── Sync result feedback ───────────────────────────────────── */}
+      {syncResult && (
+        <div style={{
+          marginBottom: 16, padding: '8px 14px', borderRadius: 6,
+          fontSize: 13,
+          backgroundColor: syncResult.startsWith('Error') ? '#fef2f2' : '#f0fdf4',
+          color: syncResult.startsWith('Error') ? '#dc2626' : '#059669',
+          border: `1px solid ${syncResult.startsWith('Error') ? '#fecaca' : '#bbf7d0'}`,
+        }}>
+          {syncResult}
+        </div>
+      )}
 
       <p style={{ color: '#6b7280', marginBottom: 20, fontSize: 13 }}>
         Drop a PO file (PDF, CSV, or Excel) → review &amp; edit → verify

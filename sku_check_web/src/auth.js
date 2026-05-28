@@ -85,6 +85,7 @@ async function fetchGatewayToken() {
   const form = new URLSearchParams()
   form.append('username', import.meta.env.VITE_API_USER)
   form.append('password', import.meta.env.VITE_API_PASSWORD)
+  form.append('client_id', import.meta.env.VITE_API_CLIENT_ID)
 
   const res = await plainAxios.post('/api/v1/auth/token', form, {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

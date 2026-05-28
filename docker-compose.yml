@@ -1,4 +1,4 @@
-# version: '3.8'
+version: '3.8'
 
 services:
 
@@ -24,25 +24,25 @@ services:
       timeout: 5s
       retries: 3
     restart: always
-    # networks:
-    #   - odoo19_odoo19-net
+    networks:
+      - odoo19_odoo19-net
 
-  frontend:
-    build: ./frontend
-    container_name: po-frontend
+  sku_check_web:
+    build: ./sku_check_web
+    container_name: sku_check_web
     ports:
       - "5100:5100"
     volumes:
-      - ./frontend:/app
+      - ./sku_check_web:/app
       - /app/node_modules
     depends_on:
       - api
-    # networks:
-    #   - odoo19_odoo19-net
+    networks:
+      - odoo19_odoo19-net
 
 # volumes:
 #   redis_data:
 
-# networks:
-#   odoo19_odoo19-net:
-#     external: true
+networks:
+  odoo19_odoo19-net:
+    external: true
