@@ -1,29 +1,26 @@
 {
-  "$schema": "https://openapi. .sh/vercel.json",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
     "api/index.py": {
       "memory": 512,
       "maxDuration": 60
     }
   },
+  "buildCommand": "cd sku_check_web && npm install && npm run build",
+  "outputDirectory": "sku_check_web/dist",
   "rewrites": [
-    { "source": "/extract-po",     "destination": "/api/index" },
-    { "source": "/extract-file",   "destination": "/api/index" },
-    { "source": "/verify-po",      "destination": "/api/index" },
-    { "source": "/upload-po",      "destination": "/api/index" },
-    { "source": "/download/(.*)",   "destination": "/api/index" },
-    { "source": "/cleanup",        "destination": "/api/index" },
-    { "source": "/health",         "destination": "/api/index" },
-    { "source": "/docs",           "destination": "/api/index" },
-    { "source": "/openapi.json",   "destination": "/api/index" }
+    { "source": "/api/(.*)", "destination": "/api/index" },
+    { "source": "/docs", "destination": "/api/index" },
+    { "source": "/redoc", "destination": "/api/index" },
+    { "source": "/openapi.json", "destination": "/api/index" },
+    { "source": "/health", "destination": "/api/index" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/assets/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     }
   ]
